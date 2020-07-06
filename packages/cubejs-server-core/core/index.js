@@ -179,7 +179,6 @@ class CubejsServerCore {
       telemetry: process.env.CUBEJS_TELEMETRY !== 'false',
       ...options
     };
-    console.log(options);
     if (
       !options.driverFactory ||
       !options.apiSecret ||

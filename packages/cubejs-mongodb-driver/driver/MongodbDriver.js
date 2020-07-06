@@ -64,8 +64,6 @@ class MongodbDriver extends BaseDriver {
   async release() {
     await this.closeConnection();
   }
-
-  
 }
 
 module.exports = MongodbDriver;

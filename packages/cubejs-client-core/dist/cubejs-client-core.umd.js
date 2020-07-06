@@ -4,7 +4,7 @@
 	(global = global || self, global.cubejs = factory());
 }(this, function () { 'use strict';
 
-	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 	function commonjsRequire () {
 		throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
@@ -198,9 +198,9 @@
 
 	var inspectSource = sharedStore.inspectSource;
 
-	var WeakMap$1 = global_1.WeakMap;
+	var WeakMap = global_1.WeakMap;
 
-	var nativeWeakMap = typeof WeakMap$1 === 'function' && /native code/.test(inspectSource(WeakMap$1));
+	var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
 
 	var keys = shared('keys');
 
@@ -210,7 +210,7 @@
 
 	var hiddenKeys = {};
 
-	var WeakMap$2 = global_1.WeakMap;
+	var WeakMap$1 = global_1.WeakMap;
 	var set, get, has$1;
 
 	var enforce = function (it) {
@@ -227,7 +227,7 @@
 	};
 
 	if (nativeWeakMap) {
-	  var store$1 = new WeakMap$2();
+	  var store$1 = new WeakMap$1();
 	  var wmget = store$1.get;
 	  var wmhas = store$1.has;
 	  var wmset = store$1.set;
@@ -2557,8 +2557,6 @@
 	}
 
 	function _typeof(obj) {
-	  "@babel/helpers - typeof";
-
 	  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
 	    _typeof = function (obj) {
 	      return typeof obj;
@@ -2645,35 +2643,20 @@
 	  return obj;
 	}
 
-	function ownKeys$1(object, enumerableOnly) {
-	  var keys = Object.keys(object);
-
-	  if (Object.getOwnPropertySymbols) {
-	    var symbols = Object.getOwnPropertySymbols(object);
-	    if (enumerableOnly) symbols = symbols.filter(function (sym) {
-	      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-	    });
-	    keys.push.apply(keys, symbols);
-	  }
-
-	  return keys;
-	}
-
-	function _objectSpread2(target) {
+	function _objectSpread(target) {
 	  for (var i = 1; i < arguments.length; i++) {
 	    var source = arguments[i] != null ? arguments[i] : {};
+	    var ownKeys = Object.keys(source);
 
-	    if (i % 2) {
-	      ownKeys$1(Object(source), true).forEach(function (key) {
-	        _defineProperty(target, key, source[key]);
-	      });
-	    } else if (Object.getOwnPropertyDescriptors) {
-	      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-	    } else {
-	      ownKeys$1(Object(source)).forEach(function (key) {
-	        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-	      });
+	    if (typeof Object.getOwnPropertySymbols === 'function') {
+	      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+	        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+	      }));
 	    }
+
+	    ownKeys.forEach(function (key) {
+	      _defineProperty(target, key, source[key]);
+	    });
 	  }
 
 	  return target;
@@ -2716,15 +2699,19 @@
 	}
 
 	function _slicedToArray(arr, i) {
-	  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+	  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
 	}
 
 	function _toConsumableArray(arr) {
-	  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+	  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
 	}
 
 	function _arrayWithoutHoles(arr) {
-	  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+	  if (Array.isArray(arr)) {
+	    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+	    return arr2;
+	  }
 	}
 
 	function _arrayWithHoles(arr) {
@@ -2732,11 +2719,10 @@
 	}
 
 	function _iterableToArray(iter) {
-	  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+	  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
 	}
 
 	function _iterableToArrayLimit(arr, i) {
-	  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
 	  var _arr = [];
 	  var _n = true;
 	  var _d = false;
@@ -2762,29 +2748,12 @@
 	  return _arr;
 	}
 
-	function _unsupportedIterableToArray(o, minLen) {
-	  if (!o) return;
-	  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-	  var n = Object.prototype.toString.call(o).slice(8, -1);
-	  if (n === "Object" && o.constructor) n = o.constructor.name;
-	  if (n === "Map" || n === "Set") return Array.from(o);
-	  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-	}
-
-	function _arrayLikeToArray(arr, len) {
-	  if (len == null || len > arr.length) len = arr.length;
-
-	  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
-	  return arr2;
-	}
-
 	function _nonIterableSpread() {
-	  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+	  throw new TypeError("Invalid attempt to spread non-iterable instance");
 	}
 
 	function _nonIterableRest() {
-	  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+	  throw new TypeError("Invalid attempt to destructure non-iterable instance");
 	}
 
 	var runtime_1 = createCommonjsModule(function (module) {
@@ -5880,7 +5849,9 @@
 	 *      R.add(7)(10);      //=> 17
 	 */
 
-	var add = /*#__PURE__*/_curry2(function add(a, b) {
+	var add =
+	/*#__PURE__*/
+	_curry2(function add(a, b) {
 	  return Number(a) + Number(b);
 	});
 
@@ -6066,7 +6037,9 @@
 	 *      g(4); //=> 10
 	 */
 
-	var curryN = /*#__PURE__*/_curry2(function curryN(length, fn) {
+	var curryN =
+	/*#__PURE__*/
+	_curry2(function curryN(length, fn) {
 	  if (length === 1) {
 	    return _curry1(fn);
 	  }
@@ -6226,7 +6199,9 @@
 	 *      R.max('a', 'b'); //=> 'b'
 	 */
 
-	var max$2 = /*#__PURE__*/_curry2(function max(a, b) {
+	var max$2 =
+	/*#__PURE__*/
+	_curry2(function max(a, b) {
 	  return b > a ? b : a;
 	});
 
@@ -6265,7 +6240,9 @@
 	 *      _isArrayLike({0: 'zero', 9: 'nine', length: 10}); //=> true
 	 */
 
-	var _isArrayLike = /*#__PURE__*/_curry1(function isArrayLike(x) {
+	var _isArrayLike =
+	/*#__PURE__*/
+	_curry1(function isArrayLike(x) {
 	  if (_isArray(x)) {
 	    return true;
 	  }
@@ -6297,7 +6274,9 @@
 	  return false;
 	});
 
-	var XWrap = /*#__PURE__*/function () {
+	var XWrap =
+	/*#__PURE__*/
+	function () {
 	  function XWrap(fn) {
 	    this.f = fn;
 	  }
@@ -6344,7 +6323,9 @@
 	 * @symb R.bind(f, o)(a, b) = f.call(o, a, b)
 	 */
 
-	var bind$1 = /*#__PURE__*/_curry2(function bind(fn, thisObj) {
+	var bind$1 =
+	/*#__PURE__*/
+	_curry2(function bind(fn, thisObj) {
 	  return _arity(fn.length, function () {
 	    return fn.apply(thisObj, arguments);
 	  });
@@ -6418,7 +6399,9 @@
 	  throw new TypeError('reduce: list must be array or iterable');
 	}
 
-	var XMap = /*#__PURE__*/function () {
+	var XMap =
+	/*#__PURE__*/
+	function () {
 	  function XMap(f, xf) {
 	    this.xf = xf;
 	    this.f = f;
@@ -6434,7 +6417,9 @@
 	  return XMap;
 	}();
 
-	var _xmap = /*#__PURE__*/_curry2(function _xmap(f, xf) {
+	var _xmap =
+	/*#__PURE__*/
+	_curry2(function _xmap(f, xf) {
 	  return new XMap(f, xf);
 	});
 
@@ -6444,7 +6429,9 @@
 
 	var toString$2 = Object.prototype.toString;
 
-	var _isArguments = /*#__PURE__*/function () {
+	var _isArguments =
+	/*#__PURE__*/
+	function () {
 	  return toString$2.call(arguments) === '[object Arguments]' ? function _isArguments(x) {
 	    return toString$2.call(x) === '[object Arguments]';
 	  } : function _isArguments(x) {
@@ -6452,12 +6439,16 @@
 	  };
 	}();
 
-	var hasEnumBug = ! /*#__PURE__*/{
+	var hasEnumBug = !
+	/*#__PURE__*/
+	{
 	  toString: null
 	}.propertyIsEnumerable('toString');
 	var nonEnumerableProps = ['constructor', 'valueOf', 'isPrototypeOf', 'toString', 'propertyIsEnumerable', 'hasOwnProperty', 'toLocaleString']; // Safari bug
 
-	var hasArgsEnumBug = /*#__PURE__*/function () {
+	var hasArgsEnumBug =
+	/*#__PURE__*/
+	function () {
 
 	  return arguments.propertyIsEnumerable('length');
 	}();
@@ -6495,9 +6486,13 @@
 	 */
 
 
-	var keys$3 = typeof Object.keys === 'function' && !hasArgsEnumBug ? /*#__PURE__*/_curry1(function keys(obj) {
+	var keys$3 = typeof Object.keys === 'function' && !hasArgsEnumBug ?
+	/*#__PURE__*/
+	_curry1(function keys(obj) {
 	  return Object(obj) !== obj ? [] : Object.keys(obj);
-	}) : /*#__PURE__*/_curry1(function keys(obj) {
+	}) :
+	/*#__PURE__*/
+	_curry1(function keys(obj) {
 	  if (Object(obj) !== obj) {
 	    return [];
 	  }
@@ -6566,7 +6561,11 @@
 	 * @symb R.map(f, functor_o) = functor_o.map(f)
 	 */
 
-	var map = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['fantasy-land/map', 'map'], _xmap, function map(fn, functor) {
+	var map =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable(['fantasy-land/map', 'map'], _xmap, function map(fn, functor) {
 	  switch (Object.prototype.toString.call(functor)) {
 	    case '[object Function]':
 	      return curryN(functor.length, function () {
@@ -6637,7 +6636,9 @@
 	 * @symb R.nth(1, [a, b, c]) = b
 	 */
 
-	var nth = /*#__PURE__*/_curry2(function nth(offset, list) {
+	var nth =
+	/*#__PURE__*/
+	_curry2(function nth(offset, list) {
 	  var idx = offset < 0 ? list.length + offset : offset;
 	  return _isString(list) ? list.charAt(idx) : list[idx];
 	});
@@ -6661,7 +6662,9 @@
 	 *      R.paths([['a', 'b'], ['p', 'r']], {a: {b: 2}, p: [{q: 3}]}); //=> [2, undefined]
 	 */
 
-	var paths = /*#__PURE__*/_curry2(function paths(pathsArray, obj) {
+	var paths =
+	/*#__PURE__*/
+	_curry2(function paths(pathsArray, obj) {
 	  return pathsArray.map(function (paths) {
 	    var val = obj;
 	    var idx = 0;
@@ -6702,7 +6705,9 @@
 	 *      R.path(['a', 'b', -2], {a: {b: [1, 2, 3]}}); //=> 2
 	 */
 
-	var path$1 = /*#__PURE__*/_curry2(function path(pathAr, obj) {
+	var path$1 =
+	/*#__PURE__*/
+	_curry2(function path(pathAr, obj) {
 	  return paths([pathAr], obj)[0];
 	});
 
@@ -6728,7 +6733,9 @@
 	 *      R.compose(R.inc, R.prop('x'))({ x: 3 }) //=> 4
 	 */
 
-	var prop = /*#__PURE__*/_curry2(function prop(p, obj) {
+	var prop =
+	/*#__PURE__*/
+	_curry2(function prop(p, obj) {
 	  return path$1([p], obj);
 	});
 
@@ -6760,7 +6767,9 @@
 	 * @symb R.pluck(0, [[1, 2], [3, 4], [5, 6]]) = [1, 3, 5]
 	 */
 
-	var pluck = /*#__PURE__*/_curry2(function pluck(p, list) {
+	var pluck =
+	/*#__PURE__*/
+	_curry2(function pluck(p, list) {
 	  return map(prop(p), list);
 	});
 
@@ -6811,7 +6820,9 @@
 	 * @symb R.reduce(f, a, [b, c, d]) = f(f(f(a, b), c), d)
 	 */
 
-	var reduce = /*#__PURE__*/_curry3(_reduce);
+	var reduce =
+	/*#__PURE__*/
+	_curry3(_reduce);
 
 	/**
 	 * ap applies a list of functions to a list of values.
@@ -6840,7 +6851,9 @@
 	 * @symb R.ap([f, g], [a, b]) = [f(a), f(b), g(a), g(b)]
 	 */
 
-	var ap = /*#__PURE__*/_curry2(function ap(applyF, applyX) {
+	var ap =
+	/*#__PURE__*/
+	_curry2(function ap(applyF, applyX) {
 	  return typeof applyX['fantasy-land/ap'] === 'function' ? applyX['fantasy-land/ap'](applyF) : typeof applyF.ap === 'function' ? applyF.ap(applyX) : typeof applyF === 'function' ? function (x) {
 	    return applyF(x)(applyX(x));
 	  } : _reduce(function (acc, f) {
@@ -6871,7 +6884,9 @@
 	 *      madd3([1,2,3], [1,2,3], [1]); //=> [3, 4, 5, 4, 5, 6, 5, 6, 7]
 	 */
 
-	var liftN = /*#__PURE__*/_curry2(function liftN(arity, fn) {
+	var liftN =
+	/*#__PURE__*/
+	_curry2(function liftN(arity, fn) {
 	  var lifted = curryN(arity, fn);
 	  return curryN(arity, function () {
 	    return _reduce(ap, map(lifted, arguments[0]), Array.prototype.slice.call(arguments, 1));
@@ -6901,7 +6916,9 @@
 	 *      madd5([1,2], [3], [4, 5], [6], [7, 8]); //=> [21, 22, 22, 23, 22, 23, 23, 24]
 	 */
 
-	var lift = /*#__PURE__*/_curry1(function lift(fn) {
+	var lift =
+	/*#__PURE__*/
+	_curry1(function lift(fn) {
 	  return liftN(fn.length, fn);
 	});
 
@@ -6947,7 +6964,9 @@
 	 *      g(4); //=> 10
 	 */
 
-	var curry = /*#__PURE__*/_curry1(function curry(fn) {
+	var curry =
+	/*#__PURE__*/
+	_curry1(function curry(fn) {
 	  return curryN(fn.length, fn);
 	});
 
@@ -6984,7 +7003,9 @@
 	 * @symb R.call(f, a, b) = f(a, b)
 	 */
 
-	var call = /*#__PURE__*/curry(function call(fn) {
+	var call =
+	/*#__PURE__*/
+	curry(function call(fn) {
 	  return fn.apply(this, Array.prototype.slice.call(arguments, 1));
 	});
 
@@ -7056,7 +7077,9 @@
 	  };
 	};
 
-	var _xchain = /*#__PURE__*/_curry2(function _xchain(f, xf) {
+	var _xchain =
+	/*#__PURE__*/
+	_curry2(function _xchain(f, xf) {
 	  return map(f, _flatCat(xf));
 	});
 
@@ -7087,7 +7110,11 @@
 	 *      R.chain(R.append, R.head)([1, 2, 3]); //=> [1, 2, 3, 1]
 	 */
 
-	var chain = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['fantasy-land/chain', 'chain'], _xchain, function chain(fn, monad) {
+	var chain =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable(['fantasy-land/chain', 'chain'], _xchain, function chain(fn, monad) {
 	  if (typeof monad === 'function') {
 	    return function (x) {
 	      return fn(monad(x))(x);
@@ -7208,7 +7235,9 @@
 	 *      R.type(undefined); //=> "Undefined"
 	 */
 
-	var type = /*#__PURE__*/_curry1(function type(val) {
+	var type =
+	/*#__PURE__*/
+	_curry1(function type(val) {
 	  return val === null ? 'Null' : val === undefined ? 'Undefined' : Object.prototype.toString.call(val).slice(8, -1);
 	});
 
@@ -7284,7 +7313,9 @@
 	 *      R.not(1); //=> false
 	 */
 
-	var not = /*#__PURE__*/_curry1(function not(a) {
+	var not =
+	/*#__PURE__*/
+	_curry1(function not(a) {
 	  return !a;
 	});
 
@@ -7311,7 +7342,9 @@
 	 *      isNotNil(7); //=> true
 	 */
 
-	var complement = /*#__PURE__*/lift(not);
+	var complement =
+	/*#__PURE__*/
+	lift(not);
 
 	function _pipe(f, g) {
 	  return function () {
@@ -7368,7 +7401,11 @@
 	 *      R.slice(0, 3, 'ramda');                     //=> 'ram'
 	 */
 
-	var slice$2 = /*#__PURE__*/_curry3( /*#__PURE__*/_checkForMethod('slice', function slice(fromIndex, toIndex, list) {
+	var slice$2 =
+	/*#__PURE__*/
+	_curry3(
+	/*#__PURE__*/
+	_checkForMethod('slice', function slice(fromIndex, toIndex, list) {
 	  return Array.prototype.slice.call(list, fromIndex, toIndex);
 	}));
 
@@ -7400,7 +7437,13 @@
 	 *      R.tail('');     //=> ''
 	 */
 
-	var tail = /*#__PURE__*/_curry1( /*#__PURE__*/_checkForMethod('tail', /*#__PURE__*/slice$2(1, Infinity)));
+	var tail =
+	/*#__PURE__*/
+	_curry1(
+	/*#__PURE__*/
+	_checkForMethod('tail',
+	/*#__PURE__*/
+	slice$2(1, Infinity)));
 
 	/**
 	 * Performs left-to-right function composition. The first argument may have
@@ -7459,7 +7502,9 @@
 	 *      R.reverse('');         //=> ''
 	 */
 
-	var reverse = /*#__PURE__*/_curry1(function reverse(list) {
+	var reverse =
+	/*#__PURE__*/
+	_curry1(function reverse(list) {
 	  return _isString(list) ? list.split('').reverse().join('') : Array.prototype.slice.call(list, 0).reverse();
 	});
 
@@ -7518,7 +7563,9 @@
 	 *      R.head(''); //=> ''
 	 */
 
-	var head$1 = /*#__PURE__*/nth(0);
+	var head$1 =
+	/*#__PURE__*/
+	nth(0);
 
 	function _identity(x) {
 	  return x;
@@ -7544,7 +7591,9 @@
 	 * @symb R.identity(a) = a
 	 */
 
-	var identity = /*#__PURE__*/_curry1(_identity);
+	var identity =
+	/*#__PURE__*/
+	_curry1(_identity);
 
 	var test$2 = [];
 	var nativeSort = test$2.sort;
@@ -7839,7 +7888,9 @@
 	 *      R.equals(a, b); //=> true
 	 */
 
-	var equals = /*#__PURE__*/_curry2(function equals(a, b) {
+	var equals =
+	/*#__PURE__*/
+	_curry2(function equals(a, b) {
 	  return _equals(a, b, [], []);
 	});
 
@@ -8294,7 +8345,9 @@
 	  return Object.prototype.toString.call(x) === '[object Object]';
 	}
 
-	var XFilter = /*#__PURE__*/function () {
+	var XFilter =
+	/*#__PURE__*/
+	function () {
 	  function XFilter(f, xf) {
 	    this.xf = xf;
 	    this.f = f;
@@ -8310,7 +8363,9 @@
 	  return XFilter;
 	}();
 
-	var _xfilter = /*#__PURE__*/_curry2(function _xfilter(f, xf) {
+	var _xfilter =
+	/*#__PURE__*/
+	_curry2(function _xfilter(f, xf) {
 	  return new XFilter(f, xf);
 	});
 
@@ -8342,7 +8397,11 @@
 	 *      R.filter(isEven, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
 	 */
 
-	var filter = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['filter'], _xfilter, function (pred, filterable) {
+	var filter =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable(['filter'], _xfilter, function (pred, filterable) {
 	  return _isObject(filterable) ? _reduce(function (acc, key) {
 	    if (pred(filterable[key])) {
 	      acc[key] = filterable[key];
@@ -8378,7 +8437,9 @@
 	 *      R.reject(isOdd, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
 	 */
 
-	var reject = /*#__PURE__*/_curry2(function reject(pred, filterable) {
+	var reject =
+	/*#__PURE__*/
+	_curry2(function reject(pred, filterable) {
 	  return filter(_complement(pred), filterable);
 	});
 
@@ -8472,7 +8533,9 @@
 	 *      R.toString(new Date('2001-02-03T04:05:06Z')); //=> 'new Date("2001-02-03T04:05:06.000Z")'
 	 */
 
-	var toString$3 = /*#__PURE__*/_curry1(function toString(val) {
+	var toString$3 =
+	/*#__PURE__*/
+	_curry1(function toString(val) {
 	  return _toString(val, []);
 	});
 
@@ -8505,7 +8568,9 @@
 	 * @symb R.converge(f, [g, h])(a, b) = f(g(a, b), h(a, b))
 	 */
 
-	var converge = /*#__PURE__*/_curry2(function converge(after, fns) {
+	var converge =
+	/*#__PURE__*/
+	_curry2(function converge(after, fns) {
 	  return curryN(reduce(max$2, 0, pluck('length', fns)), function () {
 	    var args = arguments;
 	    var context = this;
@@ -8515,7 +8580,9 @@
 	  });
 	});
 
-	var XReduceBy = /*#__PURE__*/function () {
+	var XReduceBy =
+	/*#__PURE__*/
+	function () {
 	  function XReduceBy(valueFn, valueAcc, keyFn, xf) {
 	    this.valueFn = valueFn;
 	    this.valueAcc = valueAcc;
@@ -8554,7 +8621,9 @@
 	  return XReduceBy;
 	}();
 
-	var _xreduceBy = /*#__PURE__*/_curryN(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
+	var _xreduceBy =
+	/*#__PURE__*/
+	_curryN(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
 	  return new XReduceBy(valueFn, valueAcc, keyFn, xf);
 	});
 
@@ -8600,7 +8669,11 @@
 	 *      //=> {"A": ["Dora"], "B": ["Abby", "Curt"], "F": ["Bart"]}
 	 */
 
-	var reduceBy = /*#__PURE__*/_curryN(4, [], /*#__PURE__*/_dispatchable([], _xreduceBy, function reduceBy(valueFn, valueAcc, keyFn, list) {
+	var reduceBy =
+	/*#__PURE__*/
+	_curryN(4, [],
+	/*#__PURE__*/
+	_dispatchable([], _xreduceBy, function reduceBy(valueFn, valueAcc, keyFn, list) {
 	  return _reduce(function (acc, elt) {
 	    var key = keyFn(elt);
 	    acc[key] = valueFn(_has(key, acc) ? acc[key] : _clone(valueAcc, [], [], false), elt);
@@ -8633,7 +8706,9 @@
 	 *      R.countBy(R.toLower)(letters);   //=> {'a': 3, 'b': 2, 'c': 1}
 	 */
 
-	var countBy = /*#__PURE__*/reduceBy(function (acc, elem) {
+	var countBy =
+	/*#__PURE__*/
+	reduceBy(function (acc, elem) {
 	  return acc + 1;
 	}, 0);
 
@@ -8653,7 +8728,9 @@
 	 *      R.dec(42); //=> 41
 	 */
 
-	var dec = /*#__PURE__*/add(-1);
+	var dec =
+	/*#__PURE__*/
+	add(-1);
 
 	var freezing = !fails(function () {
 	  return Object.isExtensible(Object.preventExtensions({}));
@@ -9002,7 +9079,9 @@
 	  return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
 	}, collectionStrong);
 
-	var _Set = /*#__PURE__*/function () {
+	var _Set =
+	/*#__PURE__*/
+	function () {
 	  function _Set() {
 	    /* globals Set */
 	    this._nativeSet = typeof Set === 'function' ? new Set() : null;
@@ -9258,7 +9337,9 @@
 	  }
 	});
 
-	var XTake = /*#__PURE__*/function () {
+	var XTake =
+	/*#__PURE__*/
+	function () {
 	  function XTake(n, xf) {
 	    this.xf = xf;
 	    this.n = n;
@@ -9277,7 +9358,9 @@
 	  return XTake;
 	}();
 
-	var _xtake = /*#__PURE__*/_curry2(function _xtake(n, xf) {
+	var _xtake =
+	/*#__PURE__*/
+	_curry2(function _xtake(n, xf) {
 	  return new XTake(n, xf);
 	});
 
@@ -9325,7 +9408,11 @@
 	 * @symb R.take(2, [a, b]) = [a, b]
 	 */
 
-	var take = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['take'], _xtake, function take(n, xs) {
+	var take =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable(['take'], _xtake, function take(n, xs) {
 	  return slice$2(0, n < 0 ? Infinity : n, xs);
 	}));
 
@@ -9333,7 +9420,9 @@
 	  return take(n < xs.length ? xs.length - n : 0, xs);
 	}
 
-	var XDropLast = /*#__PURE__*/function () {
+	var XDropLast =
+	/*#__PURE__*/
+	function () {
 	  function XDropLast(n, xf) {
 	    this.xf = xf;
 	    this.pos = 0;
@@ -9370,7 +9459,9 @@
 	  return XDropLast;
 	}();
 
-	var _xdropLast = /*#__PURE__*/_curry2(function _xdropLast(n, xf) {
+	var _xdropLast =
+	/*#__PURE__*/
+	_curry2(function _xdropLast(n, xf) {
 	  return new XDropLast(n, xf);
 	});
 
@@ -9398,9 +9489,15 @@
 	 *      R.dropLast(3, 'ramda');               //=> 'ra'
 	 */
 
-	var dropLast$1 = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable([], _xdropLast, dropLast));
+	var dropLast$1 =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable([], _xdropLast, dropLast));
 
-	var XDropRepeatsWith = /*#__PURE__*/function () {
+	var XDropRepeatsWith =
+	/*#__PURE__*/
+	function () {
 	  function XDropRepeatsWith(pred, xf) {
 	    this.xf = xf;
 	    this.pred = pred;
@@ -9427,7 +9524,9 @@
 	  return XDropRepeatsWith;
 	}();
 
-	var _xdropRepeatsWith = /*#__PURE__*/_curry2(function _xdropRepeatsWith(pred, xf) {
+	var _xdropRepeatsWith =
+	/*#__PURE__*/
+	_curry2(function _xdropRepeatsWith(pred, xf) {
 	  return new XDropRepeatsWith(pred, xf);
 	});
 
@@ -9452,7 +9551,9 @@
 	 *      R.last(''); //=> ''
 	 */
 
-	var last$1 = /*#__PURE__*/nth(-1);
+	var last$1 =
+	/*#__PURE__*/
+	nth(-1);
 
 	/**
 	 * Returns a new list without any consecutively repeating elements. Equality is
@@ -9476,7 +9577,11 @@
 	 *      R.dropRepeatsWith(R.eqBy(Math.abs), l); //=> [1, 3, 4, -5, 3]
 	 */
 
-	var dropRepeatsWith = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable([], _xdropRepeatsWith, function dropRepeatsWith(pred, list) {
+	var dropRepeatsWith =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_dispatchable([], _xdropRepeatsWith, function dropRepeatsWith(pred, list) {
 	  var result = [];
 	  var idx = 1;
 	  var len = list.length;
@@ -9515,7 +9620,15 @@
 	 *     R.dropRepeats([1, 1, 1, 2, 3, 4, 4, 2, 2]); //=> [1, 2, 3, 4, 2]
 	 */
 
-	var dropRepeats = /*#__PURE__*/_curry1( /*#__PURE__*/_dispatchable([], /*#__PURE__*/_xdropRepeatsWith(equals), /*#__PURE__*/dropRepeatsWith(equals)));
+	var dropRepeats =
+	/*#__PURE__*/
+	_curry1(
+	/*#__PURE__*/
+	_dispatchable([],
+	/*#__PURE__*/
+	_xdropRepeatsWith(equals),
+	/*#__PURE__*/
+	dropRepeatsWith(equals)));
 
 	/**
 	 * Returns a new function much like the supplied one, except that the first two
@@ -9538,7 +9651,9 @@
 	 * @symb R.flip(f)(a, b, c) = f(b, a, c)
 	 */
 
-	var flip = /*#__PURE__*/_curry1(function flip(fn) {
+	var flip =
+	/*#__PURE__*/
+	_curry1(function flip(fn) {
 	  return curryN(fn.length, function (a, b) {
 	    var args = Array.prototype.slice.call(arguments, 0);
 	    args[0] = b;
@@ -9564,7 +9679,9 @@
 	 *      R.fromPairs([['a', 1], ['b', 2], ['c', 3]]); //=> {a: 1, b: 2, c: 3}
 	 */
 
-	var fromPairs = /*#__PURE__*/_curry1(function fromPairs(pairs) {
+	var fromPairs =
+	/*#__PURE__*/
+	_curry1(function fromPairs(pairs) {
 	  var result = {};
 	  var idx = 0;
 
@@ -9617,7 +9734,13 @@
 	 *      // }
 	 */
 
-	var groupBy = /*#__PURE__*/_curry2( /*#__PURE__*/_checkForMethod('groupBy', /*#__PURE__*/reduceBy(function (acc, item) {
+	var groupBy =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	_checkForMethod('groupBy',
+	/*#__PURE__*/
+	reduceBy(function (acc, item) {
 	  if (acc == null) {
 	    acc = [];
 	  }
@@ -9642,7 +9765,9 @@
 	 *      R.inc(42); //=> 43
 	 */
 
-	var inc = /*#__PURE__*/add(1);
+	var inc =
+	/*#__PURE__*/
+	add(1);
 
 	/**
 	 * Given a function that generates a key, turns a list of objects into an
@@ -9667,7 +9792,9 @@
 	 *      //=> {abc: {id: 'abc', title: 'B'}, xyz: {id: 'xyz', title: 'A'}}
 	 */
 
-	var indexBy = /*#__PURE__*/reduceBy(function (acc, elem) {
+	var indexBy =
+	/*#__PURE__*/
+	reduceBy(function (acc, elem) {
 	  return elem;
 	}, null);
 
@@ -9696,7 +9823,9 @@
 	 *      R.init('');     //=> ''
 	 */
 
-	var init = /*#__PURE__*/slice$2(0, -1);
+	var init =
+	/*#__PURE__*/
+	slice$2(0, -1);
 
 	/**
 	 * Returns a new list containing only one copy of each element in the original
@@ -9717,7 +9846,9 @@
 	 *      R.uniqBy(Math.abs, [-1, -5, 2, 10, 1, 2]); //=> [-1, -5, 2, 10]
 	 */
 
-	var uniqBy = /*#__PURE__*/_curry2(function uniqBy(fn, list) {
+	var uniqBy =
+	/*#__PURE__*/
+	_curry2(function uniqBy(fn, list) {
 	  var set = new _Set();
 	  var result = [];
 	  var idx = 0;
@@ -9755,7 +9886,9 @@
 	 *      R.uniq([[42], [42]]); //=> [[42]]
 	 */
 
-	var uniq = /*#__PURE__*/uniqBy(identity);
+	var uniq =
+	/*#__PURE__*/
+	uniqBy(identity);
 
 	/**
 	 * Turns a named method with a specified arity into a function that can be
@@ -9792,7 +9925,9 @@
 	 * @symb R.invoker(2, 'method')(a, b, o) = o['method'](a, b)
 	 */
 
-	var invoker = /*#__PURE__*/_curry2(function invoker(arity, method) {
+	var invoker =
+	/*#__PURE__*/
+	_curry2(function invoker(arity, method) {
 	  return curryN(arity + 1, function () {
 	    var target = arguments[arity];
 
@@ -9824,7 +9959,9 @@
 	 *      R.join('|', [1, 2, 3]);    //=> '1|2|3'
 	 */
 
-	var join = /*#__PURE__*/invoker(1, 'join');
+	var join =
+	/*#__PURE__*/
+	invoker(1, 'join');
 
 	/**
 	 * juxt applies a list of functions to a list of values.
@@ -9844,7 +9981,9 @@
 	 * @symb R.juxt([f, g, h])(a, b) = [f(a, b), g(a, b), h(a, b)]
 	 */
 
-	var juxt = /*#__PURE__*/_curry1(function juxt(fns) {
+	var juxt =
+	/*#__PURE__*/
+	_curry1(function juxt(fns) {
 	  return converge(function () {
 	    return Array.prototype.slice.call(arguments, 0);
 	  }, fns);
@@ -9881,7 +10020,9 @@
 	 *      R.reduce(R.maxBy(square), 0, []); //=> 0
 	 */
 
-	var maxBy = /*#__PURE__*/_curry3(function maxBy(f, a, b) {
+	var maxBy =
+	/*#__PURE__*/
+	_curry3(function maxBy(f, a, b) {
 	  return f(b) > f(a) ? b : a;
 	});
 
@@ -9901,7 +10042,9 @@
 	 *      R.sum([2,4,6,8,100,1]); //=> 121
 	 */
 
-	var sum = /*#__PURE__*/reduce(add, 0);
+	var sum =
+	/*#__PURE__*/
+	reduce(add, 0);
 
 	/**
 	 * Takes a function and two values, and returns whichever value produces the
@@ -9928,7 +10071,9 @@
 	 *      R.reduce(R.minBy(square), Infinity, []); //=> Infinity
 	 */
 
-	var minBy = /*#__PURE__*/_curry3(function minBy(f, a, b) {
+	var minBy =
+	/*#__PURE__*/
+	_curry3(function minBy(f, a, b) {
 	  return f(b) < f(a) ? b : a;
 	});
 
@@ -9953,7 +10098,9 @@
 	 *      R.multiply(2, 5);  //=> 10
 	 */
 
-	var multiply = /*#__PURE__*/_curry2(function multiply(a, b) {
+	var multiply =
+	/*#__PURE__*/
+	_curry2(function multiply(a, b) {
 	  return a * b;
 	});
 
@@ -9990,7 +10137,11 @@
 	 * @symb R.partialRight(f, [a, b])(c, d) = f(c, d, a, b)
 	 */
 
-	var partialRight = /*#__PURE__*/_createPartialApplicator( /*#__PURE__*/flip(_concat));
+	var partialRight =
+	/*#__PURE__*/
+	_createPartialApplicator(
+	/*#__PURE__*/
+	flip(_concat));
 
 	/**
 	 * Takes a predicate and a list or other `Filterable` object and returns the
@@ -10017,7 +10168,9 @@
 	 *      // => [ { a: 'sss', foo: 'bars' }, { b: 'ttt' }  ]
 	 */
 
-	var partition = /*#__PURE__*/juxt([filter, reject]);
+	var partition =
+	/*#__PURE__*/
+	juxt([filter, reject]);
 
 	/**
 	 * Similar to `pick` except that this one includes a `key: undefined` pair for
@@ -10038,7 +10191,9 @@
 	 *      R.pickAll(['a', 'e', 'f'], {a: 1, b: 2, c: 3, d: 4}); //=> {a: 1, e: undefined, f: undefined}
 	 */
 
-	var pickAll = /*#__PURE__*/_curry2(function pickAll(names, obj) {
+	var pickAll =
+	/*#__PURE__*/
+	_curry2(function pickAll(names, obj) {
 	  var result = {};
 	  var idx = 0;
 	  var len = names.length;
@@ -10068,7 +10223,9 @@
 	 *      R.product([2,4,6,8,100,1]); //=> 38400
 	 */
 
-	var product = /*#__PURE__*/reduce(multiply, 1);
+	var product =
+	/*#__PURE__*/
+	reduce(multiply, 1);
 
 	/**
 	 * Accepts a function `fn` and a list of transformer functions and returns a
@@ -10100,7 +10257,9 @@
 	 * @symb R.useWith(f, [g, h])(a, b) = f(g(a), h(b))
 	 */
 
-	var useWith = /*#__PURE__*/_curry2(function useWith(fn, transformers) {
+	var useWith =
+	/*#__PURE__*/
+	_curry2(function useWith(fn, transformers) {
 	  return curryN(transformers.length, function () {
 	    var args = [];
 	    var idx = 0;
@@ -10134,7 +10293,9 @@
 	 *      R.project(['name', 'grade'], kids); //=> [{name: 'Abby', grade: 2}, {name: 'Fred', grade: 7}]
 	 */
 
-	var project = /*#__PURE__*/useWith(_map, [pickAll, identity]); // passing `identity` gives correct arity
+	var project =
+	/*#__PURE__*/
+	useWith(_map, [pickAll, identity]); // passing `identity` gives correct arity
 
 	/**
 	 * Splits a string into an array of strings based on the given
@@ -10157,7 +10318,9 @@
 	 *      R.split('.', 'a.b.c.xyz.d'); //=> ['a', 'b', 'c', 'xyz', 'd']
 	 */
 
-	var split$1 = /*#__PURE__*/invoker(1, 'split');
+	var split$1 =
+	/*#__PURE__*/
+	invoker(1, 'split');
 
 	/**
 	 * The lower case version of a string.
@@ -10175,7 +10338,9 @@
 	 *      R.toLower('XYZ'); //=> 'xyz'
 	 */
 
-	var toLower = /*#__PURE__*/invoker(0, 'toLowerCase');
+	var toLower =
+	/*#__PURE__*/
+	invoker(0, 'toLowerCase');
 
 	/**
 	 * Converts an object into an array of key, value arrays. Only the object's
@@ -10196,7 +10361,9 @@
 	 *      R.toPairs({a: 1, b: 2, c: 3}); //=> [['a', 1], ['b', 2], ['c', 3]]
 	 */
 
-	var toPairs = /*#__PURE__*/_curry1(function toPairs(obj) {
+	var toPairs =
+	/*#__PURE__*/
+	_curry1(function toPairs(obj) {
 	  var pairs = [];
 
 	  for (var prop in obj) {
@@ -10224,7 +10391,9 @@
 	 *      R.toUpper('abc'); //=> 'ABC'
 	 */
 
-	var toUpper = /*#__PURE__*/invoker(0, 'toUpperCase');
+	var toUpper =
+	/*#__PURE__*/
+	invoker(0, 'toUpperCase');
 
 	/**
 	 * Initializes a transducer using supplied iterator function. Returns a single
@@ -10274,7 +10443,9 @@
 	 *      R.transduce(firstOddTransducer, R.flip(R.append), [], R.range(0, 100)); //=> [1]
 	 */
 
-	var transduce = /*#__PURE__*/curryN(4, function transduce(xf, fn, acc, list) {
+	var transduce =
+	/*#__PURE__*/
+	curryN(4, function transduce(xf, fn, acc, list) {
 	  return _reduce(xf(typeof fn === 'function' ? _xwrap(fn) : fn), acc, list);
 	});
 
@@ -10297,11 +10468,19 @@
 	 *      R.map(R.trim, R.split(',', 'x, y, z')); //=> ['x', 'y', 'z']
 	 */
 
-	var trim$2 = !hasProtoTrim || /*#__PURE__*/ws.trim() || ! /*#__PURE__*/zeroWidth.trim() ? /*#__PURE__*/_curry1(function trim(str) {
+	var trim$2 = !hasProtoTrim ||
+	/*#__PURE__*/
+	ws.trim() || !
+	/*#__PURE__*/
+	zeroWidth.trim() ?
+	/*#__PURE__*/
+	_curry1(function trim(str) {
 	  var beginRx = new RegExp('^[' + ws + '][' + ws + ']*');
 	  var endRx = new RegExp('[' + ws + '][' + ws + ']*$');
 	  return str.replace(beginRx, '').replace(endRx, '');
-	}) : /*#__PURE__*/_curry1(function trim(str) {
+	}) :
+	/*#__PURE__*/
+	_curry1(function trim(str) {
 	  return str.trim();
 	});
 
@@ -10323,7 +10502,11 @@
 	 *      R.union([1, 2, 3], [2, 3, 4]); //=> [1, 2, 3, 4]
 	 */
 
-	var union = /*#__PURE__*/_curry2( /*#__PURE__*/compose(uniq, _concat));
+	var union =
+	/*#__PURE__*/
+	_curry2(
+	/*#__PURE__*/
+	compose(uniq, _concat));
 
 	/**
 	 * Shorthand for `R.chain(R.identity)`, which removes one level of nesting from
@@ -10343,7 +10526,9 @@
 	 *      R.unnest([[1, 2], [3, 4], [5, 6]]); //=> [1, 2, 3, 4, 5, 6]
 	 */
 
-	var unnest = /*#__PURE__*/chain(_identity);
+	var unnest =
+	/*#__PURE__*/
+	chain(_identity);
 
 	var $some$1 = arrayIteration.some;
 
@@ -15639,6 +15824,79 @@
 	});
 	var momentRange$1 = unwrapExports(momentRange);
 
+	/**
+	 * Configuration object that contains information about pivot axes and other options.
+	 *
+	 * Let's apply `pivotConfig` and see how it affects the axes
+	 * ```js
+	 * // Example query
+	 * {
+	 *   measures: ['Orders.count'],
+	 *   dimensions: ['Users.country', 'Users.gender']
+	 * }
+	 * ```
+	 * If we put the `Users.gender` dimension on **y** axis
+	 * ```js
+	 * resultSet.tablePivot({
+	 *   x: ['Users.country'],
+	 *   y: ['Users.gender', 'measures']
+	 * })
+	 * ```
+	 *
+	 * The resulting table will look the following way
+	 *
+	 * | Users Country | male, Orders.count | female, Orders.count |
+	 * | ------------- | ------------------ | -------------------- |
+	 * | Australia     | 3                  | 27                   |
+	 * | Germany       | 10                 | 12                   |
+	 * | US            | 5                  | 7                    |
+	 *
+	 * Now let's put the `Users.country` dimension on **y** axis instead
+	 * ```js
+	 * resultSet.tablePivot({
+	 *   x: ['Users.gender'],
+	 *   y: ['Users.country', 'measures'],
+	 * });
+	 * ```
+	 *
+	 * in this case the `Users.country` values will be laid out on **y** or **columns** axis
+	 *
+	 * | Users Gender | Australia, Orders.count | Germany, Orders.count | US, Orders.count |
+	 * | ------------ | ----------------------- | --------------------- | ---------------- |
+	 * | male         | 3                       | 10                    | 5                |
+	 * | female       | 27                      | 12                    | 7                |
+	 *
+	 * It's also possible to put the `measures` on **x** axis.
+	 * But in either case it should always be the last item of the array.
+	 * ```js
+	 * resultSet.tablePivot({
+	 *   x: ['Users.gender', 'measures'],
+	 *   y: ['Users.country'],
+	 * });
+	 * ```
+	 *
+	 * | Users Gender | measures     | Australia | Germany | US  |
+	 * | ------------ | ------------ | --------- | ------- | --- |
+	 * | male         | Orders.count | 3         | 10      | 5   |
+	 * | female       | Orders.count | 27        | 12      | 7   |
+	 *
+	 * @memberof ResultSet
+	 * @typedef {Object} PivotConfig Configuration object that contains the information about pivot axes and other options
+	 * @property {Array<string>} x Dimensions to put on **x** or **rows** axis.
+	 * Put `measures` at the end of array here
+	 * @property {Array<string>} y Dimensions to put on **y** or **columns** axis.
+	 * @property {Boolean} [fillMissingDates=true] If `true` missing dates on the time dimensions
+	 * will be filled with `0` for all measures.
+	 * Note: the `fillMissingDates` option set to `true` will override any **order** applied to the query
+	 */
+
+	/**
+	 * @memberof ResultSet
+	 * @typedef {Object} DrillDownLocator
+	 * @property {Array<string>} xValues
+	 * @property {Array<string>} yValues
+	 */
+
 	var moment$1 = momentRange$1.extendMoment(moment);
 	var TIME_SERIES = {
 	  day: function day(range$$1) {
@@ -15679,8 +15937,13 @@
 	};
 	var DateRegex = /^\d\d\d\d-\d\d-\d\d$/;
 	var LocalDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z?$/;
+	/**
+	 * Provides a convenient interface for data manipulation.
+	 */
 
-	var ResultSet = /*#__PURE__*/function () {
+	var ResultSet =
+	/*#__PURE__*/
+	function () {
 	  function ResultSet(loadResponse, options) {
 	    _classCallCheck(this, ResultSet);
 
@@ -15688,6 +15951,50 @@
 	    this.loadResponse = loadResponse;
 	    this.parseDateMeasures = options.parseDateMeasures;
 	  }
+	  /**
+	   * Returns a measure drill down query.
+	   *
+	   * Provided you have a measure with the defined `drillMemebers` on the `Orders` cube
+	   * ```js
+	   * measures: {
+	   *   count: {
+	   *     type: `count`,
+	   *     drillMembers: [Orders.status, Users.city, count],
+	   *   },
+	   *   // ...
+	   * }
+	   * ```
+	   *
+	   * Then you can use the `drillDown` method to see the rows that contribute to that metric
+	   * ```js
+	   * resultSet.drillDown(
+	   *   {
+	   *     xValues,
+	   *     yValues,
+	   *   },
+	   *   // you should pass the `pivotConfig` if you have used it for axes manipulation
+	   *   pivotConfig
+	   * )
+	   * ```
+	   *
+	   * the result will be a query with the required filters applied and the dimensions/measures filled out
+	   * ```js
+	   * {
+	   *   measures: ['Orders.count'],
+	   *   dimensions: ['Orders.status', 'Users.city'],
+	   *   filters: [
+	   *     // dimension and measure filters
+	   *   ],
+	   *   timeDimensions: [
+	   *     //...
+	   *   ]
+	   * }
+	   * ```
+	   * @param {DrillDownLocator} drillDownLocator
+	   * @param {PivotConfig} [pivotConfig]
+	   * @returns {Object|null} Drill down query
+	   */
+
 
 	  _createClass(ResultSet, [{
 	    key: "drillDown",
@@ -15764,11 +16071,42 @@
 	          });
 	        }
 	      });
-	      return _objectSpread2(_objectSpread2({}, measures[measureName].drillMembersGrouped), {}, {
+	      return _objectSpread({}, measures[measureName].drillMembersGrouped, {
 	        filters: filters,
 	        timeDimensions: timeDimensions
 	      });
 	    }
+	    /**
+	     * Returns an array of series with key, title and series data.
+	     * ```js
+	     * // For the query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-12-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.series() will return
+	     * [
+	     *   {
+	     *     key: 'Stories.count',
+	     *     title: 'Stories Count',
+	     *     series: [
+	     *       { x: '2015-01-01T00:00:00', value: 27120 },
+	     *       { x: '2015-02-01T00:00:00', value: 25861 },
+	     *       { x: '2015-03-01T00:00:00', value: 29661 },
+	     *       //...
+	     *     ],
+	     *   },
+	     * ]
+	     * ```
+	     * @param {PivotConfig} [pivotConfig]
+	     * @returns {Array}
+	     */
+
 	  }, {
 	    key: "series",
 	    value: function series(pivotConfig) {
@@ -15880,6 +16218,49 @@
 
 	      return TIME_SERIES[timeDimension.granularity](padToDay ? range$$1.snapTo('day') : range$$1);
 	    }
+	    /**
+	     * Base method for pivoting {@link ResultSet} data.
+	     * Most of the times shouldn't be used directly and {@link ResultSet#chartPivot}
+	     * or {@link ResultSet#tablePivot} should be used instead.
+	     *
+	     * You can find the examples of using the `pivotConfig` [here](#pivot-config)
+	     * ```js
+	     * // For query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-03-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.pivot({ x: ['Stories.time'], y: ['measures'] }) will return
+	     * [
+	     *   {
+	     *     xValues: ["2015-01-01T00:00:00"],
+	     *     yValuesArray: [
+	     *       [['Stories.count'], 27120]
+	     *     ]
+	     *   },
+	     *   {
+	     *     xValues: ["2015-02-01T00:00:00"],
+	     *     yValuesArray: [
+	     *       [['Stories.count'], 25861]
+	     *     ]
+	     *   },
+	     *   {
+	     *     xValues: ["2015-03-01T00:00:00"],
+	     *     yValuesArray: [
+	     *       [['Stories.count'], 29661]
+	     *     ]
+	     *   }
+	     * ]
+	     * ```
+	     * @param {PivotConfig} [pivotConfig]
+	     * @returns {Array} of pivoted rows.
+	     */
+
 	  }, {
 	    key: "pivot",
 	    value: function pivot(pivotConfig) {
@@ -15988,6 +16369,32 @@
 	      // TODO
 	      return this.chartPivot(pivotConfig);
 	    }
+	    /**
+	     * Returns normalized query result data in the following format.
+	     *
+	     * You can find the examples of using the `pivotConfig` [here](#pivot-config)
+	     * ```js
+	     * // For the query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-12-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.chartPivot() will return
+	     * [
+	     *   { "x":"2015-01-01T00:00:00", "Stories.count": 27120, "xValues": ["2015-01-01T00:00:00"] },
+	     *   { "x":"2015-02-01T00:00:00", "Stories.count": 25861, "xValues": ["2015-02-01T00:00:00"]  },
+	     *   { "x":"2015-03-01T00:00:00", "Stories.count": 29661, "xValues": ["2015-03-01T00:00:00"]  },
+	     *   //...
+	     * ]
+	     * ```
+	     * @param {PivotConfig} [pivotConfig]
+	     */
+
 	  }, {
 	    key: "chartPivot",
 	    value: function chartPivot(pivotConfig) {
@@ -16006,7 +16413,7 @@
 	      return this.pivot(pivotConfig).map(function (_ref23) {
 	        var xValues = _ref23.xValues,
 	            yValuesArray = _ref23.yValuesArray;
-	        return _objectSpread2({
+	        return _objectSpread({
 	          category: _this3.axisValuesString(xValues, ', '),
 	          // TODO deprecated
 	          x: _this3.axisValuesString(xValues, ', '),
@@ -16022,6 +16429,35 @@
 	        }, {}));
 	      });
 	    }
+	    /**
+	     * Returns normalized query result data prepared for visualization in the table format.
+	     *
+	     * You can find the examples of using the `pivotConfig` [here](#pivot-config)
+	     *
+	     * For example:
+	     * ```js
+	     * // For the query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-12-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.tablePivot() will return
+	     * [
+	     *   { "Stories.time": "2015-01-01T00:00:00", "Stories.count": 27120 },
+	     *   { "Stories.time": "2015-02-01T00:00:00", "Stories.count": 25861 },
+	     *   { "Stories.time": "2015-03-01T00:00:00", "Stories.count": 29661 },
+	     *   //...
+	     * ]
+	     * ```
+	     * @param {PivotConfig} [pivotConfig]
+	     * @returns {Array} of pivoted rows
+	     */
+
 	  }, {
 	    key: "tablePivot",
 	    value: function tablePivot(pivotConfig) {
@@ -16040,6 +16476,103 @@
 	        }) || []));
 	      });
 	    }
+	    /**
+	     * Returns array of column definitions for `tablePivot`.
+	     *
+	     * For example:
+	     * ```js
+	     * // For the query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-12-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.tableColumns() will return
+	     * [
+	     *   {
+	     *     key: 'Stories.time',
+	     *     dataIndex: 'Stories.time',
+	     *     title: 'Stories Time',
+	     *     shortTitle: 'Time',
+	     *     type: 'time',
+	     *     format: undefined,
+	     *   },
+	     *   {
+	     *     key: 'Stories.count',
+	     *     dataIndex: 'Stories.count',
+	     *     title: 'Stories Count',
+	     *     shortTitle: 'Count',
+	     *     type: 'count',
+	     *     format: undefined,
+	     *   },
+	     *   //...
+	     * ]
+	     * ```
+	     *
+	     * In case we want to pivot the table axes
+	     * ```js
+	     * // Let's take this query as an example
+	     * {
+	     *   measures: ['Orders.count'],
+	     *   dimensions: ['Users.country', 'Users.gender']
+	     * }
+	     *
+	     * // and put the dimensions on `y` axis
+	     * resultSet.tableColumns({
+	     *   x: [],
+	     *   y: ['Users.country', 'Users.gender', 'measures']
+	     * })
+	     * ```
+	     *
+	     * then `tableColumns` will group the table head and return
+	     * ```js
+	     * {
+	     *   key: 'Germany',
+	     *   type: 'string',
+	     *   title: 'Users Country Germany',
+	     *   shortTitle: 'Germany',
+	     *   meta: undefined,
+	     *   format: undefined,
+	     *   children: [
+	     *     {
+	     *       key: 'male',
+	     *       type: 'string',
+	     *       title: 'Users Gender male',
+	     *       shortTitle: 'male',
+	     *       meta: undefined,
+	     *       format: undefined,
+	     *       children: [
+	     *         {
+	     *           // ...
+	     *           dataIndex: 'Germany.male.Orders.count',
+	     *           shortTitle: 'Count',
+	     *         },
+	     *       ],
+	     *     },
+	     *     {
+	     *       // ...
+	     *       shortTitle: 'female',
+	     *       children: [
+	     *         {
+	     *           // ...
+	     *           dataIndex: 'Germany.female.Orders.count',
+	     *           shortTitle: 'Count',
+	     *         },
+	     *       ],
+	     *     },
+	     *   ],
+	     * },
+	     * // ...
+	     * ```
+	     *
+	     * @param {PivotConfig} [pivotConfig]
+	     * @returns {Array} of columns
+	     */
+
 	  }, {
 	    key: "tableColumns",
 	    value: function tableColumns(pivotConfig) {
@@ -16050,7 +16583,7 @@
 
 	      var extractFields = function extractFields(key) {
 	        var flatMeta = Object.values(_this4.loadResponse.annotation).reduce(function (a, b) {
-	          return _objectSpread2(_objectSpread2({}, a), b);
+	          return _objectSpread({}, a, {}, b);
 	        }, {});
 
 	        var _ref30 = flatMeta[key] || {},
@@ -16110,7 +16643,7 @@
 	          var dimensionValue = key !== currentItem.memberId ? key : '';
 
 	          if (!children.length) {
-	            return _objectSpread2(_objectSpread2({}, fields), {}, {
+	            return _objectSpread({}, fields, {
 	              key: key,
 	              dataIndex: [].concat(_toConsumableArray(path), [key]).join('.'),
 	              title: [title, dimensionValue].join(' ').trim(),
@@ -16118,7 +16651,7 @@
 	            });
 	          }
 
-	          return _objectSpread2(_objectSpread2({}, fields), {}, {
+	          return _objectSpread({}, fields, {
 	            key: key,
 	            title: [title, dimensionValue].join(' ').trim(),
 	            shortTitle: dimensionValue || shortTitle,
@@ -16133,7 +16666,7 @@
 	        return key === 'measures';
 	      })) {
 	        measureColumns = (this.query().measures || []).map(function (key) {
-	          return _objectSpread2(_objectSpread2({}, extractFields(key)), {}, {
+	          return _objectSpread({}, extractFields(key), {
 	            dataIndex: key
 	          });
 	        });
@@ -16150,10 +16683,47 @@
 	          };
 	        }
 
-	        return _objectSpread2(_objectSpread2({}, extractFields(key)), {}, {
+	        return _objectSpread({}, extractFields(key), {
 	          dataIndex: key
 	        });
 	      }).concat(toColumns(schema)).concat(measureColumns);
+	    }
+	  }, {
+	    key: "tableColumns2",
+	    value: function tableColumns2(pivotConfig) {
+	      var _this5 = this;
+
+	      var normalizedPivotConfig = this.normalizePivotConfig(pivotConfig);
+
+	      var column = function column(field) {
+	        var exractFields = function exractFields() {
+	          var annotation = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	          var title = annotation.title,
+	              shortTitle = annotation.shortTitle,
+	              format = annotation.format,
+	              type$$1 = annotation.type,
+	              meta = annotation.meta;
+	          return {
+	            title: title,
+	            shortTitle: shortTitle,
+	            format: format,
+	            type: type$$1,
+	            meta: meta
+	          };
+	        };
+
+	        return field === 'measures' ? (_this5.query().measures || []).map(function (key) {
+	          return _objectSpread({
+	            key: key
+	          }, exractFields(_this5.loadResponse.annotation.measures[key]));
+	        }) : [_objectSpread({
+	          key: field
+	        }, exractFields(_this5.loadResponse.annotation.dimensions[field] || _this5.loadResponse.annotation.timeDimensions[field]))];
+	      };
+
+	      return normalizedPivotConfig.x.map(column).concat(normalizedPivotConfig.y.map(column)).reduce(function (a, b) {
+	        return a.concat(b);
+	      });
 	    }
 	  }, {
 	    key: "totalRow",
@@ -16166,18 +16736,44 @@
 	      // TODO
 	      return this.chartPivot(pivotConfig);
 	    }
+	    /**
+	     * Returns the array of series objects, containing `key` and `title` parameters.
+	     * ```js
+	     * // For query
+	     * {
+	     *   measures: ['Stories.count'],
+	     *   timeDimensions: [{
+	     *     dimension: 'Stories.time',
+	     *     dateRange: ['2015-01-01', '2015-12-31'],
+	     *     granularity: 'month'
+	     *   }]
+	     * }
+	     *
+	     * // ResultSet.seriesNames() will return
+	     * [
+	     *   {
+	     *     key: 'Stories.count',
+	     *     title: 'Stories Count',
+	     *     yValues: ['Stories.count'],
+	     *   },
+	     * ]
+	     * ```
+	     * @param {PivotConfig} [pivotConfig]
+	     * @returns {Array} of series names
+	     */
+
 	  }, {
 	    key: "seriesNames",
 	    value: function seriesNames(pivotConfig) {
-	      var _this5 = this;
+	      var _this6 = this;
 
 	      pivotConfig = this.normalizePivotConfig(pivotConfig);
 	      return pipe(map(this.axisValues(pivotConfig.y)), unnest, uniq)(this.timeDimensionBackwardCompatibleData()).map(function (axisValues) {
 	        return {
-	          title: _this5.axisValuesString(pivotConfig.y.find(function (d) {
+	          title: _this6.axisValuesString(pivotConfig.y.find(function (d) {
 	            return d === 'measures';
-	          }) ? dropLast$1(1, axisValues).concat(_this5.loadResponse.annotation.measures[ResultSet.measureFromAxis(axisValues)].title) : axisValues, ', '),
-	          key: _this5.axisValuesString(axisValues),
+	          }) ? dropLast$1(1, axisValues).concat(_this6.loadResponse.annotation.measures[ResultSet.measureFromAxis(axisValues)].title) : axisValues, ', '),
+	          key: _this6.axisValuesString(axisValues),
 	          yValues: axisValues
 	        };
 	      });
@@ -16201,7 +16797,7 @@
 	          return !!td.granularity;
 	        });
 	        this.backwardCompatibleData = this.loadResponse.data.map(function (row) {
-	          return _objectSpread2(_objectSpread2({}, row), Object.keys(row).filter(function (field) {
+	          return _objectSpread({}, row, {}, Object.keys(row).filter(function (field) {
 	            return timeDimensions.find(function (d) {
 	              return d.dimension === field;
 	            }) && !row[ResultSet.timeDimensionMember(timeDimensions.find(function (d) {
@@ -16212,7 +16808,7 @@
 	              return d.dimension === field;
 	            })), row[field]);
 	          }).reduce(function (a, b) {
-	            return _objectSpread2(_objectSpread2({}, a), b);
+	            return _objectSpread({}, a, {}, b);
 	          }, {}));
 	        });
 	      }
@@ -16241,7 +16837,7 @@
 	        x: dimensions,
 	        y: []
 	      });
-	      pivotConfig = _objectSpread2(_objectSpread2({}, pivotConfig), {}, {
+	      pivotConfig = _objectSpread({}, pivotConfig, {
 	        x: _toConsumableArray(pivotConfig.x || []),
 	        y: _toConsumableArray(pivotConfig.y || [])
 	      });
@@ -16305,7 +16901,9 @@
 	  return ResultSet;
 	}();
 
-	var SqlQuery = /*#__PURE__*/function () {
+	var SqlQuery =
+	/*#__PURE__*/
+	function () {
 	  function SqlQuery(sqlQuery) {
 	    _classCallCheck(this, SqlQuery);
 
@@ -16383,7 +16981,9 @@
 	 * Contains information about available cubes and it's members.
 	 */
 
-	var Meta = /*#__PURE__*/function () {
+	var Meta =
+	/*#__PURE__*/
+	function () {
 	  function Meta(metaResponse) {
 	    _classCallCheck(this, Meta);
 
@@ -16491,7 +17091,9 @@
 	  return Meta;
 	}();
 
-	var ProgressResult = /*#__PURE__*/function () {
+	var ProgressResult =
+	/*#__PURE__*/
+	function () {
 	  function ProgressResult(progressResponse) {
 	    _classCallCheck(this, ProgressResult);
 
@@ -19024,7 +19626,19 @@
 	  }
 	})(typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : typeof window !== 'undefined' ? window : commonjsGlobal);
 
-	var HttpTransport = /*#__PURE__*/function () {
+	/**
+	 * Default transport implementation.
+	 */
+
+	var HttpTransport =
+	/*#__PURE__*/
+	function () {
+	  /**
+	   * @param {Object} options - mandatory options object
+	   * @param options.authorization - [jwt auth token](security)
+	   * @param options.apiUrl - path to `/cubejs-api/v1`
+	   * @param [options.headers] - object of custom headers
+	   */
 	  function HttpTransport(_ref) {
 	    var authorization = _ref.authorization,
 	        apiUrl = _ref.apiUrl,
@@ -19049,14 +19663,14 @@
 	      var searchParams = new URLSearchParams(params && Object.keys(params).map(function (k) {
 	        return _defineProperty({}, k, _typeof(params[k]) === 'object' ? JSON.stringify(params[k]) : params[k]);
 	      }).reduce(function (a, b) {
-	        return _objectSpread2(_objectSpread2({}, a), b);
+	        return _objectSpread({}, a, {}, b);
 	      }, {}));
 	      var spanCounter = 1; // Currently, all methods make GET requests. If a method makes a request with a body payload,
 	      // remember to add a 'Content-Type' header.
 
 	      var runRequest = function runRequest() {
 	        return browserPonyfill("".concat(_this.apiUrl, "/").concat(method).concat(searchParams.toString().length ? "?".concat(searchParams) : ''), {
-	          headers: _objectSpread2({
+	          headers: _objectSpread({
 	            Authorization: _this.authorization,
 	            'x-request-id': baseRequestId && "".concat(baseRequestId, "-span-").concat(spanCounter++)
 	          }, _this.headers)
@@ -19067,7 +19681,9 @@
 	        subscribe: function subscribe(callback) {
 	          var _this2 = this;
 
-	          return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+	          return _asyncToGenerator(
+	          /*#__PURE__*/
+	          regeneratorRuntime.mark(function _callee() {
 	            var result;
 	            return regeneratorRuntime.wrap(function _callee$(_context) {
 	              while (1) {
@@ -19110,8 +19726,15 @@
 	    });
 	  });
 	};
+	/**
+	 * Main class for accessing Cube.js API
+	 * @order -5
+	 */
 
-	var CubejsApi = /*#__PURE__*/function () {
+
+	var CubejsApi =
+	/*#__PURE__*/
+	function () {
 	  function CubejsApi(apiToken, options) {
 	    _classCallCheck(this, CubejsApi);
 
@@ -19136,7 +19759,7 @@
 	  _createClass(CubejsApi, [{
 	    key: "request",
 	    value: function request(method, params) {
-	      return this.transport.request(method, _objectSpread2({
+	      return this.transport.request(method, _objectSpread({
 	        baseRequestId: v4_1()
 	      }, params));
 	    }
@@ -19181,8 +19804,12 @@
 	      });
 	      var unsubscribed = false;
 
-	      var checkMutex = /*#__PURE__*/function () {
-	        var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+	      var checkMutex =
+	      /*#__PURE__*/
+	      function () {
+	        var _ref = _asyncToGenerator(
+	        /*#__PURE__*/
+	        regeneratorRuntime.mark(function _callee() {
 	          var requestInstance;
 	          return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
@@ -19225,8 +19852,12 @@
 	        };
 	      }();
 
-	      var loadImpl = /*#__PURE__*/function () {
-	        var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(response, next) {
+	      var loadImpl =
+	      /*#__PURE__*/
+	      function () {
+	        var _ref2 = _asyncToGenerator(
+	        /*#__PURE__*/
+	        regeneratorRuntime.mark(function _callee4(response, next) {
 	          var requestInstance, subscribeNext, continueWait, body, error, result;
 	          return regeneratorRuntime.wrap(function _callee4$(_context4) {
 	            while (1) {
@@ -19238,8 +19869,12 @@
 	                case 2:
 	                  requestInstance = _context4.sent;
 
-	                  subscribeNext = /*#__PURE__*/function () {
-	                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+	                  subscribeNext =
+	                  /*#__PURE__*/
+	                  function () {
+	                    var _ref3 = _asyncToGenerator(
+	                    /*#__PURE__*/
+	                    regeneratorRuntime.mark(function _callee2() {
 	                      return regeneratorRuntime.wrap(function _callee2$(_context2) {
 	                        while (1) {
 	                          switch (_context2.prev = _context2.next) {
@@ -19283,8 +19918,12 @@
 	                    };
 	                  }();
 
-	                  continueWait = /*#__PURE__*/function () {
-	                    var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(wait) {
+	                  continueWait =
+	                  /*#__PURE__*/
+	                  function () {
+	                    var _ref4 = _asyncToGenerator(
+	                    /*#__PURE__*/
+	                    regeneratorRuntime.mark(function _callee3(wait) {
 	                      return regeneratorRuntime.wrap(function _callee3$(_context3) {
 	                        while (1) {
 	                          switch (_context3.prev = _context3.next) {
@@ -19449,7 +20088,9 @@
 	      if (callback) {
 	        return {
 	          unsubscribe: function () {
-	            var _unsubscribe = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+	            var _unsubscribe = _asyncToGenerator(
+	            /*#__PURE__*/
+	            regeneratorRuntime.mark(function _callee5() {
 	              var requestInstance;
 	              return regeneratorRuntime.wrap(function _callee5$(_context5) {
 	                while (1) {
@@ -19494,7 +20135,9 @@
 	  }, {
 	    key: "updateTransportAuthorization",
 	    value: function () {
-	      var _updateTransportAuthorization = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+	      var _updateTransportAuthorization = _asyncToGenerator(
+	      /*#__PURE__*/
+	      regeneratorRuntime.mark(function _callee6() {
 	        var token;
 	        return regeneratorRuntime.wrap(function _callee6$(_context6) {
 	          while (1) {
@@ -19529,6 +20172,34 @@
 
 	      return updateTransportAuthorization;
 	    }()
+	    /**
+	     * Fetch data for passed `query`.
+	     *
+	     * ```js
+	     * import cubejs from '@cubejs-client/core';
+	     * import Chart from 'chart.js';
+	     * import chartjsConfig from './toChartjsData';
+	     *
+	     * const cubejsApi = cubejs('CUBEJS_TOKEN');
+	     *
+	     * const resultSet = await cubejsApi.load({
+	     *  measures: ['Stories.count'],
+	     *  timeDimensions: [{
+	     *    dimension: 'Stories.time',
+	     *    dateRange: ['2015-01-01', '2015-12-31'],
+	     *    granularity: 'month'
+	     *   }]
+	     * });
+	     *
+	     * const context = document.getElementById('myChart');
+	     * new Chart(context, chartjsConfig(resultSet));
+	     * ```
+	     * @param query - [Query object](query-format)
+	     * @param [options] - See {@link CubejsApi#loadMethod}
+	     * @param [callback] - See {@link CubejsApi#loadMethod}
+	     * @returns {Promise} for {@link ResultSet} if `callback` isn't passed
+	     */
+
 	  }, {
 	    key: "load",
 	    value: function load(query, options, callback) {
@@ -19544,6 +20215,14 @@
 	        });
 	      }, options, callback);
 	    }
+	    /**
+	     * Get generated SQL string for given `query`.
+	     * @param query - [Query object](query-format)
+	     * @param [options] - See {@link CubejsApi#loadMethod}
+	     * @param [callback] - See {@link CubejsApi#loadMethod}
+	     * @return {Promise} for {@link SqlQuery} if `callback` isn't passed
+	     */
+
 	  }, {
 	    key: "sql",
 	    value: function sql(query, options, callback) {
@@ -19557,6 +20236,13 @@
 	        return new SqlQuery(body);
 	      }, options, callback);
 	    }
+	    /**
+	     * Get meta description of cubes available for querying.
+	     * @param [options] - See {@link CubejsApi#loadMethod}
+	     * @param [callback] - See {@link CubejsApi#loadMethod}
+	     * @return {Promise} for {@link Meta} if `callback` isn't passed
+	     */
+
 	  }, {
 	    key: "meta",
 	    value: function meta(options, callback) {
@@ -19581,7 +20267,7 @@
 	        return new ResultSet(body, {
 	          parseDateMeasures: _this5.parseDateMeasures
 	        });
-	      }, _objectSpread2(_objectSpread2({}, options), {}, {
+	      }, _objectSpread({}, options, {
 	        subscribe: true
 	      }), callback);
 	    }
@@ -19589,12 +20275,44 @@
 
 	  return CubejsApi;
 	}();
+	/**
+	 * Create instance of `CubejsApi`.
+	 * API entry point.
+	 *
+	 * ```javascript
+	 import cubejs from '@cubejs-client/core';
+
+	 const cubejsApi = cubejs(
+	 'CUBEJS-API-TOKEN',
+	 { apiUrl: 'http://localhost:4000/cubejs-api/v1' }
+	 );
+	 ```
+	 * @name cubejs
+	 * @param [apiToken] - [API token](security) is used to authorize requests and determine SQL database you're accessing.
+	 * In the development mode, Cube.js Backend will print the API token to the console on on startup.
+	 * Can be an async function without arguments that returns API token.
+	 * @param [options] - options object.
+	 * @param options.apiUrl - URL of your Cube.js Backend.
+	 * By default, in the development environment it is `http://localhost:4000/cubejs-api/v1`.
+	 * @param options.transport - transport implementation to use. {@link HttpTransport} will be used by default.
+	 * @returns {CubejsApi}
+	 * @order -10
+	 */
+
 
 	var index$1 = (function (apiToken, options) {
 	  return new CubejsApi(apiToken, options);
 	});
 
-	var index_umd = index$1;
+	var src = /*#__PURE__*/Object.freeze({
+		default: index$1,
+		HttpTransport: HttpTransport,
+		ResultSet: ResultSet
+	});
+
+	var index$2 = ( src && index$1 ) || src;
+
+	var index_umd = index$2;
 
 	return index_umd;
 

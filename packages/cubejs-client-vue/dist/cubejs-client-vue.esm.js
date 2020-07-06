@@ -1,34 +1,26 @@
-import 'core-js/modules/es.symbol';
-import 'core-js/modules/es.array.filter';
-import 'core-js/modules/es.array.for-each';
 import 'core-js/modules/es.array.iterator';
 import 'core-js/modules/es.array.map';
 import 'core-js/modules/es.object.assign';
-import 'core-js/modules/es.object.define-properties';
-import 'core-js/modules/es.object.define-property';
-import 'core-js/modules/es.object.get-own-property-descriptor';
-import 'core-js/modules/es.object.get-own-property-descriptors';
 import 'core-js/modules/es.object.keys';
 import 'core-js/modules/es.object.to-string';
 import 'core-js/modules/es.promise';
 import 'core-js/modules/es.string.iterator';
-import 'core-js/modules/web.dom-collections.for-each';
 import 'core-js/modules/web.dom-collections.iterator';
 import _slicedToArray from '@babel/runtime/helpers/slicedToArray';
-import _defineProperty from '@babel/runtime/helpers/defineProperty';
+import _objectSpread2 from '@babel/runtime/helpers/objectSpread';
 import _regeneratorRuntime from '@babel/runtime/regenerator';
 import 'regenerator-runtime/runtime';
 import _asyncToGenerator from '@babel/runtime/helpers/asyncToGenerator';
 import { toPairs, fromPairs } from 'ramda';
+import 'core-js/modules/es.array.filter';
 import 'core-js/modules/es.array.find';
 import 'core-js/modules/es.array.find-index';
+import 'core-js/modules/es.array.for-each';
 import 'core-js/modules/es.array.slice';
 import 'core-js/modules/es.array.splice';
 import 'core-js/modules/es.function.name';
+import 'core-js/modules/web.dom-collections.for-each';
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 var QueryRenderer = {
   props: {
     query: {
@@ -68,7 +60,9 @@ var QueryRenderer = {
   mounted: function mounted() {
     var _this = this;
 
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
+    return _asyncToGenerator(
+    /*#__PURE__*/
+    _regeneratorRuntime.mark(function _callee() {
       var query, queries;
       return _regeneratorRuntime.wrap(function _callee$(_context) {
         while (1) {
@@ -113,7 +107,7 @@ var QueryRenderer = {
     var onlyDefault = !('empty' in this.$slots) && !('error' in this.$scopedSlots);
 
     if ($scopedSlots.builder && this.builderProps.measures) {
-      controls = $scopedSlots.builder(_objectSpread({}, this.builderProps));
+      controls = $scopedSlots.builder(_objectSpread2({}, this.builderProps));
     }
 
     if (!loading && resultSet && !error || onlyDefault) {
@@ -124,7 +118,7 @@ var QueryRenderer = {
       };
 
       if (onlyDefault) {
-        Object.assign(slotProps, _objectSpread({
+        Object.assign(slotProps, _objectSpread2({
           loading: loading,
           error: error
         }, this.builderProps));
@@ -144,7 +138,9 @@ var QueryRenderer = {
     load: function load() {
       var _this2 = this;
 
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
+      return _asyncToGenerator(
+      /*#__PURE__*/
+      _regeneratorRuntime.mark(function _callee2() {
         var query;
         return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
@@ -234,7 +230,9 @@ var QueryRenderer = {
     loadQueries: function loadQueries() {
       var _this3 = this;
 
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee3() {
+      return _asyncToGenerator(
+      /*#__PURE__*/
+      _regeneratorRuntime.mark(function _callee3() {
         var queries, resultPromises;
         return _regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
@@ -302,9 +300,6 @@ var QueryRenderer = {
   }
 };
 
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 var QUERY_ELEMENTS = ['measures', 'dimensions', 'segments', 'timeDimensions', 'filters'];
 var QueryBuilder = {
   components: {
@@ -524,7 +519,9 @@ var QueryBuilder = {
   mounted: function mounted() {
     var _this3 = this;
 
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
+    return _asyncToGenerator(
+    /*#__PURE__*/
+    _regeneratorRuntime.mark(function _callee() {
       return _regeneratorRuntime.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -560,30 +557,30 @@ var QueryBuilder = {
           renewQuery = _this$query.renewQuery,
           order = _this$query.order;
       this.measures = (measures || []).map(function (m, i) {
-        return _objectSpread$1({
+        return _objectSpread2({
           index: i
         }, _this4.meta.resolveMember(m, 'measures'));
       });
       this.dimensions = (dimensions || []).map(function (m, i) {
-        return _objectSpread$1({
+        return _objectSpread2({
           index: i
         }, _this4.meta.resolveMember(m, 'dimensions'));
       });
       this.segments = (segments || []).map(function (m, i) {
-        return _objectSpread$1({
+        return _objectSpread2({
           index: i
         }, _this4.meta.resolveMember(m, 'segments'));
       });
       this.timeDimensions = (timeDimensions || []).map(function (m, i) {
-        return _objectSpread$1(_objectSpread$1({}, m), {}, {
-          dimension: _objectSpread$1(_objectSpread$1({}, _this4.meta.resolveMember(m.dimension, 'dimensions')), {}, {
+        return _objectSpread2({}, m, {
+          dimension: _objectSpread2({}, _this4.meta.resolveMember(m.dimension, 'dimensions'), {
             granularities: _this4.granularities
           }),
           index: i
         });
       });
       this.filters = (filters || []).map(function (m, i) {
-        return _objectSpread$1(_objectSpread$1({}, m), {}, {
+        return _objectSpread2({}, m, {
           member: _this4.meta.resolveMember(m.member || m.dimension, ['dimensions', 'measures']),
           operators: _this4.meta.filterOperatorsForMember(m.member || m.dimension, ['dimensions', 'measures']),
           index: i
@@ -610,11 +607,11 @@ var QueryBuilder = {
         });
 
         if (mem) {
-          var dimension = _objectSpread$1(_objectSpread$1({}, this.meta.resolveMember(mem.name, 'dimensions')), {}, {
+          var dimension = _objectSpread2({}, this.meta.resolveMember(mem.name, 'dimensions'), {
             granularities: this.granularities
           });
 
-          mem = _objectSpread$1(_objectSpread$1({}, mem), {}, {
+          mem = _objectSpread2({}, mem, {
             granularity: member.granularity,
             dateRange: member.dateRange,
             dimension: dimension,
@@ -622,9 +619,9 @@ var QueryBuilder = {
           });
         }
       } else if (element === 'filters') {
-        var filterMember = _objectSpread$1({}, this.meta.resolveMember(member.member || member.dimension, ['dimensions', 'measures']));
+        var filterMember = _objectSpread2({}, this.meta.resolveMember(member.member || member.dimension, ['dimensions', 'measures']));
 
-        mem = _objectSpread$1(_objectSpread$1({}, member), {}, {
+        mem = _objectSpread2({}, member, {
           member: filterMember
         });
       } else {
@@ -674,11 +671,11 @@ var QueryBuilder = {
         });
 
         if (mem) {
-          var dimension = _objectSpread$1(_objectSpread$1({}, this.meta.resolveMember(mem.name, 'dimensions')), {}, {
+          var dimension = _objectSpread2({}, this.meta.resolveMember(mem.name, 'dimensions'), {
             granularities: this.granularities
           });
 
-          mem = _objectSpread$1(_objectSpread$1({}, mem), {}, {
+          mem = _objectSpread2({}, mem, {
             dimension: dimension,
             granularity: member.granularity,
             dateRange: member.dateRange,
@@ -690,9 +687,9 @@ var QueryBuilder = {
           return x.dimension === old;
         });
 
-        var filterMember = _objectSpread$1({}, this.meta.resolveMember(member.member || member.dimension, ['dimensions', 'measures']));
+        var filterMember = _objectSpread2({}, this.meta.resolveMember(member.member || member.dimension, ['dimensions', 'measures']));
 
-        mem = _objectSpread$1(_objectSpread$1({}, member), {}, {
+        mem = _objectSpread2({}, member, {
           member: filterMember
         });
       } else {
@@ -721,11 +718,11 @@ var QueryBuilder = {
           });
 
           if (mem) {
-            var dimension = _objectSpread$1(_objectSpread$1({}, _this5.meta.resolveMember(mem.name, 'dimensions')), {}, {
+            var dimension = _objectSpread2({}, _this5.meta.resolveMember(mem.name, 'dimensions'), {
               granularities: _this5.granularities
             });
 
-            mem = _objectSpread$1(_objectSpread$1({}, mem), {}, {
+            mem = _objectSpread2({}, mem, {
               granularity: m.granularity,
               dateRange: m.dateRange,
               dimension: dimension,
@@ -733,9 +730,9 @@ var QueryBuilder = {
             });
           }
         } else if (element === 'filters') {
-          var member = _objectSpread$1({}, _this5.meta.resolveMember(m.member || m.dimension, ['dimensions', 'measures']));
+          var member = _objectSpread2({}, _this5.meta.resolveMember(m.member || m.dimension, ['dimensions', 'measures']));
 
-          mem = _objectSpread$1(_objectSpread$1({}, m), {}, {
+          mem = _objectSpread2({}, m, {
             member: member
           });
         } else {

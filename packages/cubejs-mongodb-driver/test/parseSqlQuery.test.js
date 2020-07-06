@@ -2,7 +2,7 @@ const { parseSqlQuery, getSelection, getSources, getSpecialStatements, parseColu
 
 describe('SQL Query Parser', () => {
   test('should parse selection items', () => {
-    const q = `SELECT "donors".city "donors__city", count("donors"._id) "donors__count"`;
+    const q = 'SELECT "donors".city "donors__city", count("donors"._id) "donors__count"';
 
     const result = getSelection(q);
 
@@ -21,7 +21,7 @@ describe('SQL Query Parser', () => {
   });
 
   test('should parse column names', () => {
-    const q = `"donors"."Donor State" "donors__donor_state"`;
+    const q = '"donors"."Donor State" "donors__donor_state"';
 
     const result = parseColumnName(q);
 
@@ -32,7 +32,7 @@ describe('SQL Query Parser', () => {
   });
 
   test('should parse column names - no source specified', () => {
-    const q = `Donor City "donors__city"`;
+    const q = 'Donor City "donors__city"';
 
     const result = parseColumnName(q);
 
@@ -63,18 +63,18 @@ describe('SQL Query Parser', () => {
         {
           $group: {
             _id: {
-              donors__donor_state: "$Donor State",
+              donors__donor_state: '$Donor State',
             },
             donors__count: {
               $sum: 1,
             },
           },
-        },    
+        },
         {
           $project: {
             _id: 0,
-            donors__donor_state: "$_id.donors__donor_state",
-            donors__count: 1,      
+            donors__donor_state: '$_id.donors__donor_state',
+            donors__count: 1,
           }
         },
         {
@@ -104,15 +104,15 @@ describe('SQL Query Parser', () => {
         },
         {
           $match: {
-            "Donor City": {
+            'Donor City': {
               $in: [
-                "San Francisco",
+                'San Francisco',
               ],
             },
           },
         },
         {
-          $count: "donors__count",
+          $count: 'donors__count',
         },
       ],
     });
@@ -127,38 +127,38 @@ describe('SQL Query Parser', () => {
     const result = parseSqlQuery(q, ['Flagstaff']);
   
     expect(result).toStrictEqual({
-      "source":"donors",
-      "aggregate": [
+      source: 'donors',
+      aggregate: [
         {
-          "$limit":10000
+          $limit: 10000
         },
         {
-          "$group": {
-            "_id": {
-              "donors__city": "$Donor City"
+          $group: {
+            _id: {
+              donors__city: '$Donor City'
             },
-            "donors__count": {"$sum":1 }
+            donors__count: { $sum: 1 }
           }
         },
         {
-          "$project": {
-            "donors__city": "$_id.donors__city",
-            "_id":0,
-            "donors__count":1
+          $project: {
+            donors__city: '$_id.donors__city',
+            _id: 0,
+            donors__count: 1
           }
         },
         {
-          "$match": {
-            "donors__city": {
-              "$in": ["Flagstaff"]
+          $match: {
+            donors__city: {
+              $in: ['Flagstaff']
             }
           }
         },
         {
-          "$sort": {
-            "donors__count":-1
+          $sort: {
+            donors__count: -1
           }
         }
-      ]});
+      ] });
   });
 });

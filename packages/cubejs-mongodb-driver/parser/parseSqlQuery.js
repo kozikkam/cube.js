@@ -20,19 +20,19 @@ const parseSqlQuery = (sqlQuery, values) => {
     for (const el of Object.keys(groupBy)) {
       projection.$project[el] = `$_id.${el}`;
     }
-    projection.$project['_id'] = 0;
+    projection.$project._id = 0;
   }
 
   const countElement = selection.filter((s) => s.type === 'count')[0];
   let count = null;
   if (countElement) {
     if (group) {
-      group.$group[countElement.columnLabel || `count`] = { $sum: 1 };
-      projection.$project[countElement.columnLabel || `count`] = 1;
+      group.$group[countElement.columnLabel || 'count'] = { $sum: 1 };
+      projection.$project[countElement.columnLabel || 'count'] = 1;
     } else {
       count = {
-        $count: countElement.columnLabel || `count`,
-      }
+        $count: countElement.columnLabel || 'count',
+      };
     }
   }
 
@@ -59,7 +59,7 @@ const parseSqlQuery = (sqlQuery, values) => {
 const normalizeQuery = (sql) => {
   const noNewLinesQuery = sql.replace(/\n/g, ' ');
   return noNewLinesQuery.replace(/\s+/g, ' ');
-}
+};
 
 const getSelection = (sql) => {
   let selectSql = sql.match(/SELECT (.+?(?=FROM|$))/i);
@@ -68,7 +68,7 @@ const getSelection = (sql) => {
   }
 
   const cleanedSelectionItems = selectSql.split(',').map((item) => {
-    let itemName = item.split('AS')[0].trim();
+    const itemName = item.split('AS')[0].trim();
 
     return itemName;
   });
@@ -79,14 +79,14 @@ const getSelection = (sql) => {
       return {
         ...parseColumnName(item),
         type: 'count',
-      }
+      };
     }
 
     if (itemLowerCase.includes('sum')) {
       return {
         ...parseColumnName(item),
         type: 'sum',
-      }
+      };
     }
 
     return {
@@ -99,7 +99,7 @@ const getSelection = (sql) => {
 };
 
 const getSources = (sql) => {
-  let matches = sql.match(/FROM (.+?(?=GROUP BY|ORDER BY|LIMIT|$))/);
+  const matches = sql.match(/FROM (.+?(?=GROUP BY|ORDER BY|LIMIT|$))/i);
   if (!matches) {
     throw new Error('Could not parse sources for', sql);
   }
@@ -115,22 +115,20 @@ const getSpecialStatements = (sqlQuery) => {
   }
 
   return [];
-}
+};
 
 const getGroupBy = (sqlQuery, selection) => {
-  const matches = sqlQuery.match(/GROUP BY ([0-9|,|\s]+)/);
+  const matches = sqlQuery.match(/GROUP BY ([0-9|,|\s]+)/i);
   if (matches && matches.length) {
     const groupByFields = matches.slice(-1)[0].split(',').map(Number);
-    return groupByFields.reduce((acc, el) => {
-      return {
-        ...acc,
-        [selection[el - 1].columnLabel]: `$${[selection[el - 1].columnName]}`
-      };
-    }, {});
+    return groupByFields.reduce((acc, el) => ({
+      ...acc,
+      [selection[el - 1].columnLabel]: `$${[selection[el - 1].columnName]}`
+    }), {});
   }
 
   return null;
-}
+};
 
 const getWhere = (sqlWhereQuery, values, selection) => {
   let matches = sqlWhereQuery.match(/WHERE (.+?(?=GROUP BY|ORDER BY|LIMIT|$))/i);
@@ -152,7 +150,7 @@ const getWhere = (sqlWhereQuery, values, selection) => {
       parsedColumnName = parsedColumnName[0] === '"' ? parsedColumnName.slice(1, parsedColumnName.length - 1) : parsedColumnName;
 
       return parsedColumnName;
-    }
+    };
 
     return matches.reduce((acc, el) => {
       const matchedValues = el.match(/\$([0-9]+)/g);
@@ -172,7 +170,7 @@ const getWhere = (sqlWhereQuery, values, selection) => {
 };
 
 const getSortBy = (sqlQuery, selection) => {
-  let matches = sqlQuery.match(/ORDER BY ([0-9|,|\s|ASC|DESC]+)/);
+  let matches = sqlQuery.match(/ORDER BY ([0-9|,|\s|ASC|DESC]+)/i);
   if (matches && matches.length) {
     matches = matches.slice(-1)[0].split(',');
     const globalDirection = matches.slice(-1)[0].includes('ASC') ? 1 : -1;
@@ -189,7 +187,7 @@ const getSortBy = (sqlQuery, selection) => {
   }
 
   return null;
-}
+};
 
 const parseColumnName = (sql) => {
   let columnName = sql.match(/\."([^"]*)/) || sql.match(/\.([^\s|)]*)/) || sql.match(/[^"]*/);
@@ -210,6 +208,6 @@ const parseColumnName = (sql) => {
     columnName,
     columnLabel: columnLabel || columnName,
   };
-}
+};
 
 module.exports = { parseSqlQuery, getSelection, getSources, getSpecialStatements, parseColumnName };

@@ -14,7 +14,7 @@
   "main": "driver/MongodbDriver.js",
   "scripts": {
     "test": "jest",
-    "lint": "eslint driver/*.js test/*.js"
+    "lint": "eslint **/*.js test/*.js"
   },
   "dependencies": {
     "@cubejs-backend/query-orchestrator": "^0.19.36",

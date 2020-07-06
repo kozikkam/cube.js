@@ -18,10 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@cubejs-backend/query-orchestrator@^0.19.36":
-  version "0.19.36"
-  resolved "https://registry.yarnpkg.com/@cubejs-backend/query-orchestrator/-/query-orchestrator-0.19.36.tgz#84b1ec5029c1fbc9b2c62cdbd34c83233c1df7f0"
-  integrity sha512-DDRNZkebanCC2HgShaw97f1GeNK+bKo2zNOcrhvN4NSfHqFmO1XCsSiOBISDRJNxjvaX9JVybop9BTk62K8V5A==
+"@cubejs-backend/query-orchestrator@^0.19.17":
+  version "0.19.17"
+  resolved "https://registry.yarnpkg.com/@cubejs-backend/query-orchestrator/-/query-orchestrator-0.19.17.tgz#ab68ef89f2d751ec547315e2919b01c70596743f"
+  integrity sha512-yRA3GbTZwsbFw415Mb8STRyK3w95acXv8315yNGUN0YTpbQVhCDge9Owx0inP9GicRs5XQhh2Ewc76FTvT0NSw==
   dependencies:
     generic-pool "^3.7.1"
     ramda "^0.27.0"

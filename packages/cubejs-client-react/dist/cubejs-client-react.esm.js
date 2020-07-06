@@ -1,48 +1,63 @@
+import 'core-js/modules/es.symbol';
+import 'core-js/modules/es.array.filter';
+import 'core-js/modules/es.array.for-each';
 import 'core-js/modules/es.array.iterator';
 import 'core-js/modules/es.array.map';
+import 'core-js/modules/es.date.to-string';
+import 'core-js/modules/es.object.define-properties';
+import 'core-js/modules/es.object.define-property';
+import 'core-js/modules/es.object.get-own-property-descriptor';
+import 'core-js/modules/es.object.get-own-property-descriptors';
+import 'core-js/modules/es.object.keys';
 import 'core-js/modules/es.object.to-string';
 import 'core-js/modules/es.promise';
+import 'core-js/modules/es.reflect.construct';
+import 'core-js/modules/es.regexp.to-string';
 import 'core-js/modules/es.string.iterator';
+import 'core-js/modules/web.dom-collections.for-each';
 import 'core-js/modules/web.dom-collections.iterator';
 import _slicedToArray from '@babel/runtime/helpers/slicedToArray';
-import _objectSpread2 from '@babel/runtime/helpers/objectSpread';
+import _defineProperty from '@babel/runtime/helpers/defineProperty';
 import _classCallCheck from '@babel/runtime/helpers/classCallCheck';
-import _possibleConstructorReturn from '@babel/runtime/helpers/possibleConstructorReturn';
-import _getPrototypeOf from '@babel/runtime/helpers/getPrototypeOf';
 import _createClass from '@babel/runtime/helpers/createClass';
 import _inherits from '@babel/runtime/helpers/inherits';
+import _possibleConstructorReturn from '@babel/runtime/helpers/possibleConstructorReturn';
+import _getPrototypeOf from '@babel/runtime/helpers/getPrototypeOf';
 import React, { createContext, useRef, useState, useContext, useEffect } from 'react';
 import { func, object, any, bool } from 'prop-types';
 import { equals, toPairs, fromPairs, uniqBy, prop, indexBy } from 'ramda';
 import _extends from '@babel/runtime/helpers/extends';
 import _objectWithoutProperties from '@babel/runtime/helpers/objectWithoutProperties';
 import 'core-js/modules/es.array.concat';
-import 'core-js/modules/es.array.filter';
-import 'core-js/modules/es.array.for-each';
 import 'core-js/modules/es.array.includes';
 import 'core-js/modules/es.array.splice';
 import 'core-js/modules/es.function.name';
 import 'core-js/modules/es.object.entries';
 import 'core-js/modules/es.string.includes';
-import 'core-js/modules/web.dom-collections.for-each';
-import _defineProperty from '@babel/runtime/helpers/defineProperty';
 import _regeneratorRuntime from '@babel/runtime/regenerator';
 import 'regenerator-runtime/runtime';
 import _asyncToGenerator from '@babel/runtime/helpers/asyncToGenerator';
 import _toConsumableArray from '@babel/runtime/helpers/toConsumableArray';
 import { ResultSet } from '@cubejs-client/core';
-import 'core-js/modules/es.object.keys';
 
 var isQueryPresent = (function (query) {
   return query.measures && query.measures.length || query.dimensions && query.dimensions.length || query.timeDimensions && query.timeDimensions.length;
 });
 
-var CubeContext = createContext(null);
+var CubeContext = /*#__PURE__*/createContext(null);
 
-var QueryRenderer =
-/*#__PURE__*/
-function (_React$Component) {
+function ownKeys(object$$1, enumerableOnly) { var keys = Object.keys(object$$1); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object$$1); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object$$1, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var QueryRenderer = /*#__PURE__*/function (_React$Component) {
   _inherits(QueryRenderer, _React$Component);
+
+  var _super = _createSuper(QueryRenderer);
 
   _createClass(QueryRenderer, null, [{
     key: "isQueryPresent",
@@ -56,7 +71,7 @@ function (_React$Component) {
 
     _classCallCheck(this, QueryRenderer);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(QueryRenderer).call(this, props));
+    _this = _super.call(this, props);
     _this.state = {};
     _this.mutexObj = {};
     return _this;
@@ -121,7 +136,7 @@ function (_React$Component) {
       var _this2 = this;
 
       var resetResultSetOnChange = this.props.resetResultSetOnChange;
-      this.setState(_objectSpread2({
+      this.setState(_objectSpread({
         isLoading: true,
         error: null,
         sqlQuery: null
@@ -143,9 +158,9 @@ function (_React$Component) {
               isLoading: false
             });
           })["catch"](function (error) {
-            return _this2.setState(_objectSpread2({}, resetResultSetOnChange ? {
+            return _this2.setState(_objectSpread(_objectSpread({}, resetResultSetOnChange ? {
               resultSet: null
-            } : {}, {
+            } : {}), {}, {
               error: error,
               isLoading: false
             }));
@@ -169,9 +184,9 @@ function (_React$Component) {
               isLoading: false
             });
           })["catch"](function (error) {
-            return _this2.setState(_objectSpread2({}, resetResultSetOnChange ? {
+            return _this2.setState(_objectSpread(_objectSpread({}, resetResultSetOnChange ? {
               resultSet: null
-            } : {}, {
+            } : {}), {}, {
               error: error,
               isLoading: false
             }));
@@ -187,9 +202,9 @@ function (_React$Component) {
               isLoading: false
             });
           })["catch"](function (error) {
-            return _this2.setState(_objectSpread2({}, resetResultSetOnChange ? {
+            return _this2.setState(_objectSpread(_objectSpread({}, resetResultSetOnChange ? {
               resultSet: null
-            } : {}, {
+            } : {}), {}, {
               error: error,
               isLoading: false
             }));
@@ -204,11 +219,11 @@ function (_React$Component) {
 
       var cubejsApi = this.cubejsApi();
       var resetResultSetOnChange = this.props.resetResultSetOnChange;
-      this.setState(_objectSpread2({
+      this.setState(_objectSpread(_objectSpread({
         isLoading: true
       }, resetResultSetOnChange ? {
         resultSet: null
-      } : {}, {
+      } : {}), {}, {
         error: null
       }));
       var resultPromises = Promise.all(toPairs(queries).map(function (_ref3) {
@@ -230,9 +245,9 @@ function (_React$Component) {
           isLoading: false
         });
       })["catch"](function (error) {
-        return _this3.setState(_objectSpread2({}, resetResultSetOnChange ? {
+        return _this3.setState(_objectSpread(_objectSpread({}, resetResultSetOnChange ? {
           resultSet: null
-        } : {}, {
+        } : {}), {}, {
           error: error,
           isLoading: false
         }));
@@ -287,16 +302,20 @@ QueryRenderer.defaultProps = {
   resetResultSetOnChange: true
 };
 
+function ownKeys$1(object$$1, enumerableOnly) { var keys = Object.keys(object$$1); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object$$1); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object$$1, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 var QueryRendererWithTotals = function QueryRendererWithTotals(_ref) {
   var query = _ref.query,
       restProps = _objectWithoutProperties(_ref, ["query"]);
 
-  return React.createElement(QueryRenderer, _extends({
+  return /*#__PURE__*/React.createElement(QueryRenderer, _extends({
     queries: {
-      totals: _objectSpread2({}, query, {
+      totals: _objectSpread$1(_objectSpread$1({}, query), {}, {
         dimensions: [],
         timeDimensions: query.timeDimensions ? query.timeDimensions.map(function (td) {
-          return _objectSpread2({}, td, {
+          return _objectSpread$1(_objectSpread$1({}, td), {}, {
             granularity: null
           });
         }) : undefined
@@ -331,6 +350,13 @@ function reorder(list, sourceIndex, destinationIndex) {
   return result;
 }
 
+function ownKeys$2(object$$1, enumerableOnly) { var keys = Object.keys(object$$1); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object$$1); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object$$1, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$2(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$1(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 var granularities = [{
   name: undefined,
   title: 'w/o grouping'
@@ -351,18 +377,18 @@ var granularities = [{
   title: 'Year'
 }];
 
-var QueryBuilder =
-/*#__PURE__*/
-function (_React$Component) {
+var QueryBuilder = /*#__PURE__*/function (_React$Component) {
   _inherits(QueryBuilder, _React$Component);
+
+  var _super = _createSuper$1(QueryBuilder);
 
   _createClass(QueryBuilder, null, [{
     key: "getDerivedStateFromProps",
     value: function getDerivedStateFromProps(props, state) {
-      var nextState = _objectSpread2({}, state, {}, props.vizState || {});
+      var nextState = _objectSpread$2(_objectSpread$2({}, state), props.vizState || {});
 
-      return _objectSpread2({}, nextState, {
-        query: _objectSpread2({}, nextState.query, {}, props.query || {})
+      return _objectSpread$2(_objectSpread$2({}, nextState), {}, {
+        query: _objectSpread$2(_objectSpread$2({}, nextState.query), props.query || {})
       });
     }
   }, {
@@ -377,8 +403,8 @@ function (_React$Component) {
 
       if (type === 'timeDimensions') {
         return (query.timeDimensions || []).map(function (m, index) {
-          return _objectSpread2({}, m, {
-            dimension: _objectSpread2({}, meta.resolveMember(m.dimension, 'dimensions'), {
+          return _objectSpread$2(_objectSpread$2({}, m), {}, {
+            dimension: _objectSpread$2(_objectSpread$2({}, meta.resolveMember(m.dimension, 'dimensions')), {}, {
               granularities: granularities
             }),
             index: index
@@ -387,7 +413,7 @@ function (_React$Component) {
       }
 
       return (query[type] || []).map(function (m, index) {
-        return _objectSpread2({
+        return _objectSpread$2({
           index: index
         }, meta.resolveMember(m, type));
       });
@@ -412,7 +438,7 @@ function (_React$Component) {
       return uniqBy(prop('id'), [].concat(_toConsumableArray(QueryBuilder.resolveMember('measures', state).map(toOrderMember)), _toConsumableArray(QueryBuilder.resolveMember('dimensions', state).map(toOrderMember)), _toConsumableArray(QueryBuilder.resolveMember('timeDimensions', state).map(function (td) {
         return toOrderMember(td.dimension);
       }))).map(function (member) {
-        return _objectSpread2({}, member, {
+        return _objectSpread$2(_objectSpread$2({}, member), {}, {
           order: query.order && query.order[member.id] || 'none'
         });
       }));
@@ -424,8 +450,8 @@ function (_React$Component) {
 
     _classCallCheck(this, QueryBuilder);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(QueryBuilder).call(this, props));
-    _this.state = _objectSpread2({
+    _this = _super.call(this, props);
+    _this.state = _objectSpread$2({
       query: props.query,
       chartType: 'line',
       orderMembers: [],
@@ -438,9 +464,7 @@ function (_React$Component) {
   _createClass(QueryBuilder, [{
     key: "componentDidMount",
     value: function () {
-      var _componentDidMount = _asyncToGenerator(
-      /*#__PURE__*/
-      _regeneratorRuntime.mark(function _callee() {
+      var _componentDidMount = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
         var _this$state, query, pivotConfig, meta;
 
         return _regeneratorRuntime.wrap(function _callee$(_context) {
@@ -544,7 +568,7 @@ function (_React$Component) {
           orderMembers = _this$state2$orderMem === void 0 ? [] : _this$state2$orderMem,
           chartType = _this$state2.chartType,
           pivotConfig = _this$state2.pivotConfig;
-      return _objectSpread2({
+      return _objectSpread$2({
         meta: meta,
         query: query,
         validatedQuery: this.validatedQuery(),
@@ -554,12 +578,12 @@ function (_React$Component) {
         dimensions: QueryBuilder.resolveMember('dimensions', this.state),
         timeDimensions: QueryBuilder.resolveMember('timeDimensions', this.state),
         segments: (meta && query.segments || []).map(function (m, i) {
-          return _objectSpread2({
+          return _objectSpread$2({
             index: i
           }, meta.resolveMember(m, 'segments'));
         }),
         filters: (meta && query.filters || []).map(function (m, i) {
-          return _objectSpread2({}, m, {
+          return _objectSpread$2(_objectSpread$2({}, m), {}, {
             dimension: meta.resolveMember(m.dimension, ['dimensions', 'measures']),
             operators: meta.filterOperatorsForMember(m.dimension, ['dimensions', 'measures']),
             index: i
@@ -591,7 +615,7 @@ function (_React$Component) {
 
             _this2.updateVizState({
               orderMembers: orderMembers.map(function (orderMember) {
-                return _objectSpread2({}, orderMember, {
+                return _objectSpread$2(_objectSpread$2({}, orderMember), {}, {
                   order: orderMember.id === memberId ? order : orderMember.order
                 });
               })
@@ -620,7 +644,7 @@ function (_React$Component) {
                 sourceAxis = _ref2.sourceAxis,
                 destinationAxis = _ref2.destinationAxis;
 
-            var nextPivotConfig = _objectSpread2({}, pivotConfig, {
+            var nextPivotConfig = _objectSpread$2(_objectSpread$2({}, pivotConfig), {}, {
               x: _toConsumableArray(pivotConfig.x),
               y: _toConsumableArray(pivotConfig.y)
             });
@@ -643,7 +667,7 @@ function (_React$Component) {
           },
           update: function update(config) {
             _this2.updateVizState({
-              pivotConfig: _objectSpread2({}, pivotConfig, {}, config)
+              pivotConfig: _objectSpread$2(_objectSpread$2({}, pivotConfig), config)
             });
           }
         }
@@ -654,16 +678,14 @@ function (_React$Component) {
     value: function updateQuery(queryUpdate) {
       var query = this.state.query;
       this.updateVizState({
-        query: _objectSpread2({}, query, {}, queryUpdate)
+        query: _objectSpread$2(_objectSpread$2({}, query), queryUpdate)
       });
     }
   }, {
     key: "updateVizState",
     value: function () {
-      var _updateVizState = _asyncToGenerator(
-      /*#__PURE__*/
-      _regeneratorRuntime.mark(function _callee2(state) {
-        var _this$props, setQuery, setVizState, _this$state3, stateQuery, statePivotConfig, finalState, _ref3, _, query, _ref4, sqlQuery, activePivotConfig, updatedOrderMembers, currentOrderMemberIds, currentOrderMembers, nextOrder, nextQuery, _finalState, _meta, toSet;
+      var _updateVizState = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2(state) {
+        var _this$props, setQuery, setVizState, _this$state3, stateQuery, statePivotConfig, finalState, _ref3, _, query, _yield$this$cubejsApi, sqlQuery, activePivotConfig, updatedOrderMembers, currentOrderMemberIds, currentOrderMembers, nextOrder, nextQuery, _finalState, meta, toSet;
 
         return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
@@ -685,52 +707,52 @@ function (_React$Component) {
                 });
 
               case 7:
-                _ref4 = _context2.sent;
-                sqlQuery = _ref4.sqlQuery;
+                _yield$this$cubejsApi = _context2.sent;
+                sqlQuery = _yield$this$cubejsApi.sqlQuery;
                 finalState.query.order = sqlQuery.sql.order;
 
               case 10:
                 activePivotConfig = finalState.pivotConfig !== undefined ? finalState.pivotConfig : statePivotConfig;
-                updatedOrderMembers = indexBy(prop('id'), QueryBuilder.getOrderMembers(_objectSpread2({}, this.state, {}, finalState)));
-                currentOrderMemberIds = (finalState.orderMembers || []).map(function (_ref5) {
-                  var id = _ref5.id;
+                updatedOrderMembers = indexBy(prop('id'), QueryBuilder.getOrderMembers(_objectSpread$2(_objectSpread$2({}, this.state), finalState)));
+                currentOrderMemberIds = (finalState.orderMembers || []).map(function (_ref4) {
+                  var id = _ref4.id;
                   return id;
                 });
-                currentOrderMembers = (finalState.orderMembers || []).filter(function (_ref6) {
-                  var id = _ref6.id;
+                currentOrderMembers = (finalState.orderMembers || []).filter(function (_ref5) {
+                  var id = _ref5.id;
                   return Boolean(updatedOrderMembers[id]);
                 });
-                Object.entries(updatedOrderMembers).forEach(function (_ref7) {
-                  var _ref8 = _slicedToArray(_ref7, 2),
-                      id = _ref8[0],
-                      orderMember = _ref8[1];
+                Object.entries(updatedOrderMembers).forEach(function (_ref6) {
+                  var _ref7 = _slicedToArray(_ref6, 2),
+                      id = _ref7[0],
+                      orderMember = _ref7[1];
 
                   if (!currentOrderMemberIds.includes(id)) {
                     currentOrderMembers.push(orderMember);
                   }
                 });
-                nextOrder = fromPairs(currentOrderMembers.map(function (_ref9) {
-                  var id = _ref9.id,
-                      order = _ref9.order;
+                nextOrder = fromPairs(currentOrderMembers.map(function (_ref8) {
+                  var id = _ref8.id,
+                      order = _ref8.order;
                   return order !== 'none' ? [id, order] : false;
                 }).filter(Boolean));
-                nextQuery = _objectSpread2({}, stateQuery, {}, query, {
+                nextQuery = _objectSpread$2(_objectSpread$2(_objectSpread$2({}, stateQuery), query), {}, {
                   order: nextOrder
                 });
-                finalState = _objectSpread2({}, finalState, {
+                finalState = _objectSpread$2(_objectSpread$2({}, finalState), {}, {
                   query: nextQuery,
                   orderMembers: currentOrderMembers,
                   pivotConfig: ResultSet.getNormalizedPivotConfig(nextQuery, activePivotConfig)
                 });
                 this.setState(finalState);
-                finalState = _objectSpread2({}, this.state, {}, finalState);
+                finalState = _objectSpread$2(_objectSpread$2({}, this.state), finalState);
 
                 if (setQuery) {
                   setQuery(finalState.query);
                 }
 
                 if (setVizState) {
-                  _finalState = finalState, _meta = _finalState.meta, toSet = _objectWithoutProperties(_finalState, ["meta"]);
+                  _finalState = finalState, meta = _finalState.meta, toSet = _objectWithoutProperties(_finalState, ["meta"]);
                   setVizState(toSet);
                 }
 
@@ -752,7 +774,7 @@ function (_React$Component) {
     key: "validatedQuery",
     value: function validatedQuery() {
       var query = this.state.query;
-      return _objectSpread2({}, query, {
+      return _objectSpread$2(_objectSpread$2({}, query), {}, {
         filters: (query.filters || []).filter(function (f) {
           return f.operator;
         })
@@ -769,24 +791,23 @@ function (_React$Component) {
       if (newState.query) {
         var oldQuery = query;
         var newQuery = newState.query;
-        var _meta2 = this.state.meta;
+        var meta = this.state.meta;
 
         if ((oldQuery.timeDimensions || []).length === 1 && (newQuery.timeDimensions || []).length === 1 && newQuery.timeDimensions[0].granularity && oldQuery.timeDimensions[0].granularity !== newQuery.timeDimensions[0].granularity) {
-          newState = _objectSpread2({}, newState, {
+          newState = _objectSpread$2(_objectSpread$2({}, newState), {}, {
             sessionGranularity: newQuery.timeDimensions[0].granularity
           });
         }
 
         if ((oldQuery.measures || []).length === 0 && (newQuery.measures || []).length > 0 || (oldQuery.measures || []).length === 1 && (newQuery.measures || []).length === 1 && oldQuery.measures[0] !== newQuery.measures[0]) {
-          var defaultTimeDimension = _meta2.defaultTimeDimensionNameFor(newQuery.measures[0]);
-
-          newQuery = _objectSpread2({}, newQuery, {
+          var defaultTimeDimension = meta.defaultTimeDimensionNameFor(newQuery.measures[0]);
+          newQuery = _objectSpread$2(_objectSpread$2({}, newQuery), {}, {
             timeDimensions: defaultTimeDimension ? [{
               dimension: defaultTimeDimension,
               granularity: defaultGranularity
             }] : []
           });
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
             shouldApplyHeuristicOrder: true,
             query: newQuery,
@@ -795,14 +816,14 @@ function (_React$Component) {
         }
 
         if ((oldQuery.dimensions || []).length === 0 && (newQuery.dimensions || []).length > 0) {
-          newQuery = _objectSpread2({}, newQuery, {
+          newQuery = _objectSpread$2(_objectSpread$2({}, newQuery), {}, {
             timeDimensions: (newQuery.timeDimensions || []).map(function (td) {
-              return _objectSpread2({}, td, {
+              return _objectSpread$2(_objectSpread$2({}, td), {}, {
                 granularity: undefined
               });
             })
           });
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
             shouldApplyHeuristicOrder: true,
             query: newQuery,
@@ -811,14 +832,14 @@ function (_React$Component) {
         }
 
         if ((oldQuery.dimensions || []).length > 0 && (newQuery.dimensions || []).length === 0) {
-          newQuery = _objectSpread2({}, newQuery, {
+          newQuery = _objectSpread$2(_objectSpread$2({}, newQuery), {}, {
             timeDimensions: (newQuery.timeDimensions || []).map(function (td) {
-              return _objectSpread2({}, td, {
+              return _objectSpread$2(_objectSpread$2({}, td), {}, {
                 granularity: td.granularity || defaultGranularity
               });
             })
           });
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
             shouldApplyHeuristicOrder: true,
             query: newQuery,
@@ -827,11 +848,11 @@ function (_React$Component) {
         }
 
         if (((oldQuery.dimensions || []).length > 0 || (oldQuery.measures || []).length > 0) && (newQuery.dimensions || []).length === 0 && (newQuery.measures || []).length === 0) {
-          newQuery = _objectSpread2({}, newQuery, {
+          newQuery = _objectSpread$2(_objectSpread$2({}, newQuery), {}, {
             timeDimensions: [],
             filters: []
           });
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
             shouldApplyHeuristicOrder: true,
             query: newQuery,
@@ -849,10 +870,10 @@ function (_React$Component) {
           var _query$timeDimensions = _slicedToArray(query.timeDimensions, 1),
               td = _query$timeDimensions[0];
 
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
-            query: _objectSpread2({}, query, {
-              timeDimensions: [_objectSpread2({}, td, {
+            query: _objectSpread$2(_objectSpread$2({}, query), {}, {
+              timeDimensions: [_objectSpread$2(_objectSpread$2({}, td), {}, {
                 granularity: defaultGranularity
               })]
             })
@@ -863,11 +884,11 @@ function (_React$Component) {
           var _query$timeDimensions2 = _slicedToArray(query.timeDimensions, 1),
               _td = _query$timeDimensions2[0];
 
-          return _objectSpread2({}, newState, {
+          return _objectSpread$2(_objectSpread$2({}, newState), {}, {
             pivotConfig: null,
             shouldApplyHeuristicOrder: true,
-            query: _objectSpread2({}, query, {
-              timeDimensions: [_objectSpread2({}, _td, {
+            query: _objectSpread$2(_objectSpread$2({}, query), {}, {
+              timeDimensions: [_objectSpread$2(_objectSpread$2({}, _td), {}, {
                 granularity: undefined
               })]
             })
@@ -901,7 +922,7 @@ function (_React$Component) {
           wrapWithQueryRenderer = _this$props3.wrapWithQueryRenderer;
 
       if (wrapWithQueryRenderer) {
-        return React.createElement(QueryRenderer, {
+        return /*#__PURE__*/React.createElement(QueryRenderer, {
           query: this.validatedQuery(),
           cubejsApi: cubejsApi,
           render: function render(queryRendererProps) {
@@ -951,7 +972,7 @@ QueryBuilder.defaultProps = {
 var CubeProvider = function CubeProvider(_ref) {
   var cubejsApi = _ref.cubejsApi,
       children = _ref.children;
-  return React.createElement(CubeContext.Provider, {
+  return /*#__PURE__*/React.createElement(CubeContext.Provider, {
     value: {
       cubejsApi: cubejsApi
     }
@@ -1009,9 +1030,7 @@ var useCubeQuery = (function (query) {
     }
 
     function _loadQuery() {
-      _loadQuery = _asyncToGenerator(
-      /*#__PURE__*/
-      _regeneratorRuntime.mark(function _callee() {
+      _loadQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
         var hasOrderChanged, cubejsApi;
         return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {

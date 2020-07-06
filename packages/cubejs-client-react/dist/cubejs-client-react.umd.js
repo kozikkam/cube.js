@@ -46,7 +46,7 @@
     return indexedObject(requireObjectCoercible(it));
   };
 
-  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function commonjsRequire () {
   	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
@@ -58,6 +58,10 @@
 
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  function getCjsExportFromNamespace (n) {
+  	return n && n['default'] || n;
   }
 
   var check = function (it) {
@@ -438,11 +442,11 @@
 
   var inspectSource = sharedStore.inspectSource;
 
-  var WeakMap = global_1.WeakMap;
-
-  var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
-
   var WeakMap$1 = global_1.WeakMap;
+
+  var nativeWeakMap = typeof WeakMap$1 === 'function' && /native code/.test(inspectSource(WeakMap$1));
+
+  var WeakMap$2 = global_1.WeakMap;
   var set, get, has$1;
 
   var enforce = function (it) {
@@ -459,7 +463,7 @@
   };
 
   if (nativeWeakMap) {
-    var store$1 = new WeakMap$1();
+    var store$1 = new WeakMap$2();
     var wmget = store$1.get;
     var wmhas = store$1.has;
     var wmset = store$1.set;
@@ -1980,6 +1984,8 @@
   }
 
   function _typeof(obj) {
+    "@babel/helpers - typeof";
+
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       _typeof = function (obj) {
         return typeof obj;
@@ -2084,20 +2090,35 @@
     return _extends.apply(this, arguments);
   }
 
-  function _objectSpread(target) {
+  function ownKeys$1(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
-      var ownKeys = Object.keys(source);
 
-      if (typeof Object.getOwnPropertySymbols === 'function') {
-        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-        }));
+      if (i % 2) {
+        ownKeys$1(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys$1(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
       }
-
-      ownKeys.forEach(function (key) {
-        _defineProperty(target, key, source[key]);
-      });
     }
 
     return target;
@@ -2132,6 +2153,19 @@
     };
 
     return _setPrototypeOf(o, p);
+  }
+
+  function _isNativeReflectConstruct() {
+    if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+    if (Reflect.construct.sham) return false;
+    if (typeof Proxy === "function") return true;
+
+    try {
+      Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function _objectWithoutPropertiesLoose(source, excluded) {
@@ -2186,20 +2220,35 @@
     return _assertThisInitialized(self);
   }
 
+  function _createSuper(Derived) {
+    var hasNativeReflectConstruct = _isNativeReflectConstruct();
+
+    return function _createSuperInternal() {
+      var Super = _getPrototypeOf(Derived),
+          result;
+
+      if (hasNativeReflectConstruct) {
+        var NewTarget = _getPrototypeOf(this).constructor;
+
+        result = Reflect.construct(Super, arguments, NewTarget);
+      } else {
+        result = Super.apply(this, arguments);
+      }
+
+      return _possibleConstructorReturn(this, result);
+    };
+  }
+
   function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
   }
 
   function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
   }
 
   function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-      return arr2;
-    }
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
   }
 
   function _arrayWithHoles(arr) {
@@ -2207,10 +2256,11 @@
   }
 
   function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+    if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
   }
 
   function _iterableToArrayLimit(arr, i) {
+    if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
     var _arr = [];
     var _n = true;
     var _d = false;
@@ -2236,12 +2286,29 @@
     return _arr;
   }
 
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
   function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   function _nonIterableRest() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   /**
@@ -2488,9 +2555,7 @@
    *      R.add(7)(10);      //=> 17
    */
 
-  var add =
-  /*#__PURE__*/
-  _curry2(function add(a, b) {
+  var add = /*#__PURE__*/_curry2(function add(a, b) {
     return Number(a) + Number(b);
   });
 
@@ -2720,9 +2785,7 @@
    *      g(4); //=> 10
    */
 
-  var curryN =
-  /*#__PURE__*/
-  _curry2(function curryN(length, fn) {
+  var curryN = /*#__PURE__*/_curry2(function curryN(length, fn) {
     if (length === 1) {
       return _curry1(fn);
     }
@@ -2925,9 +2988,7 @@
    *      R.max('a', 'b'); //=> 'b'
    */
 
-  var max$2 =
-  /*#__PURE__*/
-  _curry2(function max(a, b) {
+  var max$2 = /*#__PURE__*/_curry2(function max(a, b) {
     return b > a ? b : a;
   });
 
@@ -3389,9 +3450,7 @@
    *      _isArrayLike({0: 'zero', 9: 'nine', length: 10}); //=> true
    */
 
-  var _isArrayLike =
-  /*#__PURE__*/
-  _curry1(function isArrayLike(x) {
+  var _isArrayLike = /*#__PURE__*/_curry1(function isArrayLike(x) {
     if (_isArray(x)) {
       return true;
     }
@@ -3423,9 +3482,7 @@
     return false;
   });
 
-  var XWrap =
-  /*#__PURE__*/
-  function () {
+  var XWrap = /*#__PURE__*/function () {
     function XWrap(fn) {
       this.f = fn;
     }
@@ -3472,9 +3529,7 @@
    * @symb R.bind(f, o)(a, b) = f.call(o, a, b)
    */
 
-  var bind$1 =
-  /*#__PURE__*/
-  _curry2(function bind(fn, thisObj) {
+  var bind$1 = /*#__PURE__*/_curry2(function bind(fn, thisObj) {
     return _arity(fn.length, function () {
       return fn.apply(thisObj, arguments);
     });
@@ -3548,9 +3603,7 @@
     throw new TypeError('reduce: list must be array or iterable');
   }
 
-  var XMap =
-  /*#__PURE__*/
-  function () {
+  var XMap = /*#__PURE__*/function () {
     function XMap(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -3566,9 +3619,7 @@
     return XMap;
   }();
 
-  var _xmap =
-  /*#__PURE__*/
-  _curry2(function _xmap(f, xf) {
+  var _xmap = /*#__PURE__*/_curry2(function _xmap(f, xf) {
     return new XMap(f, xf);
   });
 
@@ -3588,9 +3639,7 @@
 
   var toString$2 = Object.prototype.toString;
 
-  var _isArguments =
-  /*#__PURE__*/
-  function () {
+  var _isArguments = /*#__PURE__*/function () {
     return toString$2.call(arguments) === '[object Arguments]' ? function _isArguments(x) {
       return toString$2.call(x) === '[object Arguments]';
     } : function _isArguments(x) {
@@ -3598,16 +3647,12 @@
     };
   }();
 
-  var hasEnumBug = !
-  /*#__PURE__*/
-  {
+  var hasEnumBug = ! /*#__PURE__*/{
     toString: null
   }.propertyIsEnumerable('toString');
   var nonEnumerableProps = ['constructor', 'valueOf', 'isPrototypeOf', 'toString', 'propertyIsEnumerable', 'hasOwnProperty', 'toLocaleString']; // Safari bug
 
-  var hasArgsEnumBug =
-  /*#__PURE__*/
-  function () {
+  var hasArgsEnumBug = /*#__PURE__*/function () {
 
     return arguments.propertyIsEnumerable('length');
   }();
@@ -3645,13 +3690,9 @@
    */
 
 
-  var keys$2 = typeof Object.keys === 'function' && !hasArgsEnumBug ?
-  /*#__PURE__*/
-  _curry1(function keys(obj) {
+  var keys$2 = typeof Object.keys === 'function' && !hasArgsEnumBug ? /*#__PURE__*/_curry1(function keys(obj) {
     return Object(obj) !== obj ? [] : Object.keys(obj);
-  }) :
-  /*#__PURE__*/
-  _curry1(function keys(obj) {
+  }) : /*#__PURE__*/_curry1(function keys(obj) {
     if (Object(obj) !== obj) {
       return [];
     }
@@ -3720,11 +3761,7 @@
    * @symb R.map(f, functor_o) = functor_o.map(f)
    */
 
-  var map =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  _dispatchable(['fantasy-land/map', 'map'], _xmap, function map(fn, functor) {
+  var map = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['fantasy-land/map', 'map'], _xmap, function map(fn, functor) {
     switch (Object.prototype.toString.call(functor)) {
       case '[object Function]':
         return curryN(functor.length, function () {
@@ -3795,9 +3832,7 @@
    * @symb R.nth(1, [a, b, c]) = b
    */
 
-  var nth =
-  /*#__PURE__*/
-  _curry2(function nth(offset, list) {
+  var nth = /*#__PURE__*/_curry2(function nth(offset, list) {
     var idx = offset < 0 ? list.length + offset : offset;
     return _isString(list) ? list.charAt(idx) : list[idx];
   });
@@ -3821,9 +3856,7 @@
    *      R.paths([['a', 'b'], ['p', 'r']], {a: {b: 2}, p: [{q: 3}]}); //=> [2, undefined]
    */
 
-  var paths =
-  /*#__PURE__*/
-  _curry2(function paths(pathsArray, obj) {
+  var paths = /*#__PURE__*/_curry2(function paths(pathsArray, obj) {
     return pathsArray.map(function (paths) {
       var val = obj;
       var idx = 0;
@@ -3864,9 +3897,7 @@
    *      R.path(['a', 'b', -2], {a: {b: [1, 2, 3]}}); //=> 2
    */
 
-  var path$1 =
-  /*#__PURE__*/
-  _curry2(function path(pathAr, obj) {
+  var path$1 = /*#__PURE__*/_curry2(function path(pathAr, obj) {
     return paths([pathAr], obj)[0];
   });
 
@@ -3892,9 +3923,7 @@
    *      R.compose(R.inc, R.prop('x'))({ x: 3 }) //=> 4
    */
 
-  var prop =
-  /*#__PURE__*/
-  _curry2(function prop(p, obj) {
+  var prop = /*#__PURE__*/_curry2(function prop(p, obj) {
     return path$1([p], obj);
   });
 
@@ -3926,9 +3955,7 @@
    * @symb R.pluck(0, [[1, 2], [3, 4], [5, 6]]) = [1, 3, 5]
    */
 
-  var pluck =
-  /*#__PURE__*/
-  _curry2(function pluck(p, list) {
+  var pluck = /*#__PURE__*/_curry2(function pluck(p, list) {
     return map(prop(p), list);
   });
 
@@ -3979,9 +4006,7 @@
    * @symb R.reduce(f, a, [b, c, d]) = f(f(f(a, b), c), d)
    */
 
-  var reduce =
-  /*#__PURE__*/
-  _curry3(_reduce);
+  var reduce = /*#__PURE__*/_curry3(_reduce);
 
   /**
    * ap applies a list of functions to a list of values.
@@ -4010,9 +4035,7 @@
    * @symb R.ap([f, g], [a, b]) = [f(a), f(b), g(a), g(b)]
    */
 
-  var ap =
-  /*#__PURE__*/
-  _curry2(function ap(applyF, applyX) {
+  var ap = /*#__PURE__*/_curry2(function ap(applyF, applyX) {
     return typeof applyX['fantasy-land/ap'] === 'function' ? applyX['fantasy-land/ap'](applyF) : typeof applyF.ap === 'function' ? applyF.ap(applyX) : typeof applyF === 'function' ? function (x) {
       return applyF(x)(applyX(x));
     } : _reduce(function (acc, f) {
@@ -4091,9 +4114,7 @@
    *      madd3([1,2,3], [1,2,3], [1]); //=> [3, 4, 5, 4, 5, 6, 5, 6, 7]
    */
 
-  var liftN =
-  /*#__PURE__*/
-  _curry2(function liftN(arity, fn) {
+  var liftN = /*#__PURE__*/_curry2(function liftN(arity, fn) {
     var lifted = curryN(arity, fn);
     return curryN(arity, function () {
       return _reduce(ap, map(lifted, arguments[0]), Array.prototype.slice.call(arguments, 1));
@@ -4123,9 +4144,7 @@
    *      madd5([1,2], [3], [4, 5], [6], [7, 8]); //=> [21, 22, 22, 23, 22, 23, 23, 24]
    */
 
-  var lift =
-  /*#__PURE__*/
-  _curry1(function lift(fn) {
+  var lift = /*#__PURE__*/_curry1(function lift(fn) {
     return liftN(fn.length, fn);
   });
 
@@ -4171,9 +4190,7 @@
    *      g(4); //=> 10
    */
 
-  var curry =
-  /*#__PURE__*/
-  _curry1(function curry(fn) {
+  var curry = /*#__PURE__*/_curry1(function curry(fn) {
     return curryN(fn.length, fn);
   });
 
@@ -4210,9 +4227,7 @@
    * @symb R.call(f, a, b) = f(a, b)
    */
 
-  var call =
-  /*#__PURE__*/
-  curry(function call(fn) {
+  var call = /*#__PURE__*/curry(function call(fn) {
     return fn.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
@@ -4284,9 +4299,7 @@
     };
   };
 
-  var _xchain =
-  /*#__PURE__*/
-  _curry2(function _xchain(f, xf) {
+  var _xchain = /*#__PURE__*/_curry2(function _xchain(f, xf) {
     return map(f, _flatCat(xf));
   });
 
@@ -4317,11 +4330,7 @@
    *      R.chain(R.append, R.head)([1, 2, 3]); //=> [1, 2, 3, 1]
    */
 
-  var chain =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  _dispatchable(['fantasy-land/chain', 'chain'], _xchain, function chain(fn, monad) {
+  var chain = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['fantasy-land/chain', 'chain'], _xchain, function chain(fn, monad) {
     if (typeof monad === 'function') {
       return function (x) {
         return fn(monad(x))(x);
@@ -4564,9 +4573,7 @@
    *      R.type(undefined); //=> "Undefined"
    */
 
-  var type =
-  /*#__PURE__*/
-  _curry1(function type(val) {
+  var type = /*#__PURE__*/_curry1(function type(val) {
     return val === null ? 'Null' : val === undefined ? 'Undefined' : Object.prototype.toString.call(val).slice(8, -1);
   });
 
@@ -4642,9 +4649,7 @@
    *      R.not(1); //=> false
    */
 
-  var not =
-  /*#__PURE__*/
-  _curry1(function not(a) {
+  var not = /*#__PURE__*/_curry1(function not(a) {
     return !a;
   });
 
@@ -4671,9 +4676,7 @@
    *      isNotNil(7); //=> true
    */
 
-  var complement =
-  /*#__PURE__*/
-  lift(not);
+  var complement = /*#__PURE__*/lift(not);
 
   function _pipe(f, g) {
     return function () {
@@ -4730,11 +4733,7 @@
    *      R.slice(0, 3, 'ramda');                     //=> 'ram'
    */
 
-  var slice =
-  /*#__PURE__*/
-  _curry3(
-  /*#__PURE__*/
-  _checkForMethod('slice', function slice(fromIndex, toIndex, list) {
+  var slice = /*#__PURE__*/_curry3( /*#__PURE__*/_checkForMethod('slice', function slice(fromIndex, toIndex, list) {
     return Array.prototype.slice.call(list, fromIndex, toIndex);
   }));
 
@@ -4766,13 +4765,7 @@
    *      R.tail('');     //=> ''
    */
 
-  var tail =
-  /*#__PURE__*/
-  _curry1(
-  /*#__PURE__*/
-  _checkForMethod('tail',
-  /*#__PURE__*/
-  slice(1, Infinity)));
+  var tail = /*#__PURE__*/_curry1( /*#__PURE__*/_checkForMethod('tail', /*#__PURE__*/slice(1, Infinity)));
 
   /**
    * Performs left-to-right function composition. The first argument may have
@@ -5134,9 +5127,7 @@
    *      R.reverse('');         //=> ''
    */
 
-  var reverse =
-  /*#__PURE__*/
-  _curry1(function reverse(list) {
+  var reverse = /*#__PURE__*/_curry1(function reverse(list) {
     return _isString(list) ? list.split('').reverse().join('') : Array.prototype.slice.call(list, 0).reverse();
   });
 
@@ -5195,9 +5186,7 @@
    *      R.head(''); //=> ''
    */
 
-  var head$1 =
-  /*#__PURE__*/
-  nth(0);
+  var head$1 = /*#__PURE__*/nth(0);
 
   function _identity(x) {
     return x;
@@ -5223,9 +5212,7 @@
    * @symb R.identity(a) = a
    */
 
-  var identity =
-  /*#__PURE__*/
-  _curry1(_identity);
+  var identity = /*#__PURE__*/_curry1(_identity);
 
   var test$2 = [];
   var nativeSort = test$2.sort;
@@ -5579,9 +5566,7 @@
    *      R.equals(a, b); //=> true
    */
 
-  var equals =
-  /*#__PURE__*/
-  _curry2(function equals(a, b) {
+  var equals = /*#__PURE__*/_curry2(function equals(a, b) {
     return _equals(a, b, [], []);
   });
 
@@ -6036,9 +6021,7 @@
     return Object.prototype.toString.call(x) === '[object Object]';
   }
 
-  var XFilter =
-  /*#__PURE__*/
-  function () {
+  var XFilter = /*#__PURE__*/function () {
     function XFilter(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -6054,9 +6037,7 @@
     return XFilter;
   }();
 
-  var _xfilter =
-  /*#__PURE__*/
-  _curry2(function _xfilter(f, xf) {
+  var _xfilter = /*#__PURE__*/_curry2(function _xfilter(f, xf) {
     return new XFilter(f, xf);
   });
 
@@ -6088,11 +6069,7 @@
    *      R.filter(isEven, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
    */
 
-  var filter =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  _dispatchable(['filter'], _xfilter, function (pred, filterable) {
+  var filter = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable(['filter'], _xfilter, function (pred, filterable) {
     return _isObject(filterable) ? _reduce(function (acc, key) {
       if (pred(filterable[key])) {
         acc[key] = filterable[key];
@@ -6128,9 +6105,7 @@
    *      R.reject(isOdd, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
    */
 
-  var reject =
-  /*#__PURE__*/
-  _curry2(function reject(pred, filterable) {
+  var reject = /*#__PURE__*/_curry2(function reject(pred, filterable) {
     return filter(_complement(pred), filterable);
   });
 
@@ -6224,9 +6199,7 @@
    *      R.toString(new Date('2001-02-03T04:05:06Z')); //=> 'new Date("2001-02-03T04:05:06.000Z")'
    */
 
-  var toString$3 =
-  /*#__PURE__*/
-  _curry1(function toString(val) {
+  var toString$3 = /*#__PURE__*/_curry1(function toString(val) {
     return _toString(val, []);
   });
 
@@ -6259,9 +6232,7 @@
    * @symb R.converge(f, [g, h])(a, b) = f(g(a, b), h(a, b))
    */
 
-  var converge =
-  /*#__PURE__*/
-  _curry2(function converge(after, fns) {
+  var converge = /*#__PURE__*/_curry2(function converge(after, fns) {
     return curryN(reduce(max$2, 0, pluck('length', fns)), function () {
       var args = arguments;
       var context = this;
@@ -6271,9 +6242,7 @@
     });
   });
 
-  var XReduceBy =
-  /*#__PURE__*/
-  function () {
+  var XReduceBy = /*#__PURE__*/function () {
     function XReduceBy(valueFn, valueAcc, keyFn, xf) {
       this.valueFn = valueFn;
       this.valueAcc = valueAcc;
@@ -6312,9 +6281,7 @@
     return XReduceBy;
   }();
 
-  var _xreduceBy =
-  /*#__PURE__*/
-  _curryN(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
+  var _xreduceBy = /*#__PURE__*/_curryN(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
     return new XReduceBy(valueFn, valueAcc, keyFn, xf);
   });
 
@@ -6360,11 +6327,7 @@
    *      //=> {"A": ["Dora"], "B": ["Abby", "Curt"], "F": ["Bart"]}
    */
 
-  var reduceBy =
-  /*#__PURE__*/
-  _curryN(4, [],
-  /*#__PURE__*/
-  _dispatchable([], _xreduceBy, function reduceBy(valueFn, valueAcc, keyFn, list) {
+  var reduceBy = /*#__PURE__*/_curryN(4, [], /*#__PURE__*/_dispatchable([], _xreduceBy, function reduceBy(valueFn, valueAcc, keyFn, list) {
     return _reduce(function (acc, elt) {
       var key = keyFn(elt);
       acc[key] = valueFn(_has(key, acc) ? acc[key] : _clone(valueAcc, [], [], false), elt);
@@ -6397,9 +6360,7 @@
    *      R.countBy(R.toLower)(letters);   //=> {'a': 3, 'b': 2, 'c': 1}
    */
 
-  var countBy =
-  /*#__PURE__*/
-  reduceBy(function (acc, elem) {
+  var countBy = /*#__PURE__*/reduceBy(function (acc, elem) {
     return acc + 1;
   }, 0);
 
@@ -6419,9 +6380,7 @@
    *      R.dec(42); //=> 41
    */
 
-  var dec =
-  /*#__PURE__*/
-  add(-1);
+  var dec = /*#__PURE__*/add(-1);
 
   var freezing = !fails(function () {
     return Object.isExtensible(Object.preventExtensions({}));
@@ -6770,9 +6729,7 @@
     return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
   }, collectionStrong);
 
-  var _Set =
-  /*#__PURE__*/
-  function () {
+  var _Set = /*#__PURE__*/function () {
     function _Set() {
       /* globals Set */
       this._nativeSet = typeof Set === 'function' ? new Set() : null;
@@ -7028,9 +6985,7 @@
     }
   });
 
-  var XDropRepeatsWith =
-  /*#__PURE__*/
-  function () {
+  var XDropRepeatsWith = /*#__PURE__*/function () {
     function XDropRepeatsWith(pred, xf) {
       this.xf = xf;
       this.pred = pred;
@@ -7057,9 +7012,7 @@
     return XDropRepeatsWith;
   }();
 
-  var _xdropRepeatsWith =
-  /*#__PURE__*/
-  _curry2(function _xdropRepeatsWith(pred, xf) {
+  var _xdropRepeatsWith = /*#__PURE__*/_curry2(function _xdropRepeatsWith(pred, xf) {
     return new XDropRepeatsWith(pred, xf);
   });
 
@@ -7084,9 +7037,7 @@
    *      R.last(''); //=> ''
    */
 
-  var last$1 =
-  /*#__PURE__*/
-  nth(-1);
+  var last$1 = /*#__PURE__*/nth(-1);
 
   /**
    * Returns a new list without any consecutively repeating elements. Equality is
@@ -7110,11 +7061,7 @@
    *      R.dropRepeatsWith(R.eqBy(Math.abs), l); //=> [1, 3, 4, -5, 3]
    */
 
-  var dropRepeatsWith =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  _dispatchable([], _xdropRepeatsWith, function dropRepeatsWith(pred, list) {
+  var dropRepeatsWith = /*#__PURE__*/_curry2( /*#__PURE__*/_dispatchable([], _xdropRepeatsWith, function dropRepeatsWith(pred, list) {
     var result = [];
     var idx = 1;
     var len = list.length;
@@ -7153,15 +7100,7 @@
    *     R.dropRepeats([1, 1, 1, 2, 3, 4, 4, 2, 2]); //=> [1, 2, 3, 4, 2]
    */
 
-  var dropRepeats =
-  /*#__PURE__*/
-  _curry1(
-  /*#__PURE__*/
-  _dispatchable([],
-  /*#__PURE__*/
-  _xdropRepeatsWith(equals),
-  /*#__PURE__*/
-  dropRepeatsWith(equals)));
+  var dropRepeats = /*#__PURE__*/_curry1( /*#__PURE__*/_dispatchable([], /*#__PURE__*/_xdropRepeatsWith(equals), /*#__PURE__*/dropRepeatsWith(equals)));
 
   /**
    * Returns a new function much like the supplied one, except that the first two
@@ -7184,9 +7123,7 @@
    * @symb R.flip(f)(a, b, c) = f(b, a, c)
    */
 
-  var flip =
-  /*#__PURE__*/
-  _curry1(function flip(fn) {
+  var flip = /*#__PURE__*/_curry1(function flip(fn) {
     return curryN(fn.length, function (a, b) {
       var args = Array.prototype.slice.call(arguments, 0);
       args[0] = b;
@@ -7212,9 +7149,7 @@
    *      R.fromPairs([['a', 1], ['b', 2], ['c', 3]]); //=> {a: 1, b: 2, c: 3}
    */
 
-  var fromPairs =
-  /*#__PURE__*/
-  _curry1(function fromPairs(pairs) {
+  var fromPairs = /*#__PURE__*/_curry1(function fromPairs(pairs) {
     var result = {};
     var idx = 0;
 
@@ -7267,13 +7202,7 @@
    *      // }
    */
 
-  var groupBy =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  _checkForMethod('groupBy',
-  /*#__PURE__*/
-  reduceBy(function (acc, item) {
+  var groupBy = /*#__PURE__*/_curry2( /*#__PURE__*/_checkForMethod('groupBy', /*#__PURE__*/reduceBy(function (acc, item) {
     if (acc == null) {
       acc = [];
     }
@@ -7298,9 +7227,7 @@
    *      R.inc(42); //=> 43
    */
 
-  var inc =
-  /*#__PURE__*/
-  add(1);
+  var inc = /*#__PURE__*/add(1);
 
   /**
    * Given a function that generates a key, turns a list of objects into an
@@ -7325,9 +7252,7 @@
    *      //=> {abc: {id: 'abc', title: 'B'}, xyz: {id: 'xyz', title: 'A'}}
    */
 
-  var indexBy =
-  /*#__PURE__*/
-  reduceBy(function (acc, elem) {
+  var indexBy = /*#__PURE__*/reduceBy(function (acc, elem) {
     return elem;
   }, null);
 
@@ -7356,9 +7281,7 @@
    *      R.init('');     //=> ''
    */
 
-  var init =
-  /*#__PURE__*/
-  slice(0, -1);
+  var init = /*#__PURE__*/slice(0, -1);
 
   /**
    * Returns a new list containing only one copy of each element in the original
@@ -7379,9 +7302,7 @@
    *      R.uniqBy(Math.abs, [-1, -5, 2, 10, 1, 2]); //=> [-1, -5, 2, 10]
    */
 
-  var uniqBy =
-  /*#__PURE__*/
-  _curry2(function uniqBy(fn, list) {
+  var uniqBy = /*#__PURE__*/_curry2(function uniqBy(fn, list) {
     var set = new _Set();
     var result = [];
     var idx = 0;
@@ -7419,9 +7340,7 @@
    *      R.uniq([[42], [42]]); //=> [[42]]
    */
 
-  var uniq =
-  /*#__PURE__*/
-  uniqBy(identity);
+  var uniq = /*#__PURE__*/uniqBy(identity);
 
   var nativeAssign = Object.assign;
   var defineProperty$8 = Object.defineProperty;
@@ -7508,9 +7427,7 @@
    * @symb R.invoker(2, 'method')(a, b, o) = o['method'](a, b)
    */
 
-  var invoker =
-  /*#__PURE__*/
-  _curry2(function invoker(arity, method) {
+  var invoker = /*#__PURE__*/_curry2(function invoker(arity, method) {
     return curryN(arity + 1, function () {
       var target = arguments[arity];
 
@@ -7542,9 +7459,7 @@
    *      R.join('|', [1, 2, 3]);    //=> '1|2|3'
    */
 
-  var join =
-  /*#__PURE__*/
-  invoker(1, 'join');
+  var join = /*#__PURE__*/invoker(1, 'join');
 
   /**
    * juxt applies a list of functions to a list of values.
@@ -7564,9 +7479,7 @@
    * @symb R.juxt([f, g, h])(a, b) = [f(a, b), g(a, b), h(a, b)]
    */
 
-  var juxt =
-  /*#__PURE__*/
-  _curry1(function juxt(fns) {
+  var juxt = /*#__PURE__*/_curry1(function juxt(fns) {
     return converge(function () {
       return Array.prototype.slice.call(arguments, 0);
     }, fns);
@@ -7616,9 +7529,7 @@
    *      R.sum([2,4,6,8,100,1]); //=> 121
    */
 
-  var sum =
-  /*#__PURE__*/
-  reduce(add, 0);
+  var sum = /*#__PURE__*/reduce(add, 0);
 
   /**
    * Multiplies two numbers. Equivalent to `a * b` but curried.
@@ -7641,9 +7552,7 @@
    *      R.multiply(2, 5);  //=> 10
    */
 
-  var multiply =
-  /*#__PURE__*/
-  _curry2(function multiply(a, b) {
+  var multiply = /*#__PURE__*/_curry2(function multiply(a, b) {
     return a * b;
   });
 
@@ -7680,11 +7589,7 @@
    * @symb R.partialRight(f, [a, b])(c, d) = f(c, d, a, b)
    */
 
-  var partialRight =
-  /*#__PURE__*/
-  _createPartialApplicator(
-  /*#__PURE__*/
-  flip(_concat));
+  var partialRight = /*#__PURE__*/_createPartialApplicator( /*#__PURE__*/flip(_concat));
 
   /**
    * Takes a predicate and a list or other `Filterable` object and returns the
@@ -7711,9 +7616,7 @@
    *      // => [ { a: 'sss', foo: 'bars' }, { b: 'ttt' }  ]
    */
 
-  var partition =
-  /*#__PURE__*/
-  juxt([filter, reject]);
+  var partition = /*#__PURE__*/juxt([filter, reject]);
 
   /**
    * Similar to `pick` except that this one includes a `key: undefined` pair for
@@ -7734,9 +7637,7 @@
    *      R.pickAll(['a', 'e', 'f'], {a: 1, b: 2, c: 3, d: 4}); //=> {a: 1, e: undefined, f: undefined}
    */
 
-  var pickAll =
-  /*#__PURE__*/
-  _curry2(function pickAll(names, obj) {
+  var pickAll = /*#__PURE__*/_curry2(function pickAll(names, obj) {
     var result = {};
     var idx = 0;
     var len = names.length;
@@ -7766,9 +7667,7 @@
    *      R.product([2,4,6,8,100,1]); //=> 38400
    */
 
-  var product =
-  /*#__PURE__*/
-  reduce(multiply, 1);
+  var product = /*#__PURE__*/reduce(multiply, 1);
 
   /**
    * Accepts a function `fn` and a list of transformer functions and returns a
@@ -7800,9 +7699,7 @@
    * @symb R.useWith(f, [g, h])(a, b) = f(g(a), h(b))
    */
 
-  var useWith =
-  /*#__PURE__*/
-  _curry2(function useWith(fn, transformers) {
+  var useWith = /*#__PURE__*/_curry2(function useWith(fn, transformers) {
     return curryN(transformers.length, function () {
       var args = [];
       var idx = 0;
@@ -7836,9 +7733,7 @@
    *      R.project(['name', 'grade'], kids); //=> [{name: 'Abby', grade: 2}, {name: 'Fred', grade: 7}]
    */
 
-  var project =
-  /*#__PURE__*/
-  useWith(_map, [pickAll, identity]); // passing `identity` gives correct arity
+  var project = /*#__PURE__*/useWith(_map, [pickAll, identity]); // passing `identity` gives correct arity
 
   /**
    * Splits a string into an array of strings based on the given
@@ -7861,9 +7756,7 @@
    *      R.split('.', 'a.b.c.xyz.d'); //=> ['a', 'b', 'c', 'xyz', 'd']
    */
 
-  var split$1 =
-  /*#__PURE__*/
-  invoker(1, 'split');
+  var split$1 = /*#__PURE__*/invoker(1, 'split');
 
   /**
    * The lower case version of a string.
@@ -7881,9 +7774,7 @@
    *      R.toLower('XYZ'); //=> 'xyz'
    */
 
-  var toLower =
-  /*#__PURE__*/
-  invoker(0, 'toLowerCase');
+  var toLower = /*#__PURE__*/invoker(0, 'toLowerCase');
 
   /**
    * Converts an object into an array of key, value arrays. Only the object's
@@ -7904,9 +7795,7 @@
    *      R.toPairs({a: 1, b: 2, c: 3}); //=> [['a', 1], ['b', 2], ['c', 3]]
    */
 
-  var toPairs =
-  /*#__PURE__*/
-  _curry1(function toPairs(obj) {
+  var toPairs = /*#__PURE__*/_curry1(function toPairs(obj) {
     var pairs = [];
 
     for (var prop in obj) {
@@ -7934,9 +7823,7 @@
    *      R.toUpper('abc'); //=> 'ABC'
    */
 
-  var toUpper =
-  /*#__PURE__*/
-  invoker(0, 'toUpperCase');
+  var toUpper = /*#__PURE__*/invoker(0, 'toUpperCase');
 
   /**
    * Initializes a transducer using supplied iterator function. Returns a single
@@ -7986,9 +7873,7 @@
    *      R.transduce(firstOddTransducer, R.flip(R.append), [], R.range(0, 100)); //=> [1]
    */
 
-  var transduce =
-  /*#__PURE__*/
-  curryN(4, function transduce(xf, fn, acc, list) {
+  var transduce = /*#__PURE__*/curryN(4, function transduce(xf, fn, acc, list) {
     return _reduce(xf(typeof fn === 'function' ? _xwrap(fn) : fn), acc, list);
   });
 
@@ -8032,19 +7917,11 @@
    *      R.map(R.trim, R.split(',', 'x, y, z')); //=> ['x', 'y', 'z']
    */
 
-  var trim$1 = !hasProtoTrim ||
-  /*#__PURE__*/
-  ws.trim() || !
-  /*#__PURE__*/
-  zeroWidth.trim() ?
-  /*#__PURE__*/
-  _curry1(function trim(str) {
+  var trim$1 = !hasProtoTrim || /*#__PURE__*/ws.trim() || ! /*#__PURE__*/zeroWidth.trim() ? /*#__PURE__*/_curry1(function trim(str) {
     var beginRx = new RegExp('^[' + ws + '][' + ws + ']*');
     var endRx = new RegExp('[' + ws + '][' + ws + ']*$');
     return str.replace(beginRx, '').replace(endRx, '');
-  }) :
-  /*#__PURE__*/
-  _curry1(function trim(str) {
+  }) : /*#__PURE__*/_curry1(function trim(str) {
     return str.trim();
   });
 
@@ -8066,11 +7943,7 @@
    *      R.union([1, 2, 3], [2, 3, 4]); //=> [1, 2, 3, 4]
    */
 
-  var union =
-  /*#__PURE__*/
-  _curry2(
-  /*#__PURE__*/
-  compose(uniq, _concat));
+  var union = /*#__PURE__*/_curry2( /*#__PURE__*/compose(uniq, _concat));
 
   /**
    * Shorthand for `R.chain(R.identity)`, which removes one level of nesting from
@@ -8090,20 +7963,18 @@
    *      R.unnest([[1, 2], [3, 4], [5, 6]]); //=> [1, 2, 3, 4, 5, 6]
    */
 
-  var unnest =
-  /*#__PURE__*/
-  chain(_identity);
+  var unnest = /*#__PURE__*/chain(_identity);
 
   var isQueryPresent = (function (query) {
     return query.measures && query.measures.length || query.dimensions && query.dimensions.length || query.timeDimensions && query.timeDimensions.length;
   });
 
-  var CubeContext = React.createContext(null);
+  var CubeContext = /*#__PURE__*/React.createContext(null);
 
-  var QueryRenderer =
-  /*#__PURE__*/
-  function (_React$Component) {
+  var QueryRenderer = /*#__PURE__*/function (_React$Component) {
     _inherits(QueryRenderer, _React$Component);
+
+    var _super = _createSuper(QueryRenderer);
 
     _createClass(QueryRenderer, null, [{
       key: "isQueryPresent",
@@ -8117,7 +7988,7 @@
 
       _classCallCheck(this, QueryRenderer);
 
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(QueryRenderer).call(this, props$$1));
+      _this = _super.call(this, props$$1);
       _this.state = {};
       _this.mutexObj = {};
       return _this;
@@ -8182,7 +8053,7 @@
         var _this2 = this;
 
         var resetResultSetOnChange = this.props.resetResultSetOnChange;
-        this.setState(_objectSpread({
+        this.setState(_objectSpread2({
           isLoading: true,
           error: null,
           sqlQuery: null
@@ -8204,9 +8075,9 @@
                 isLoading: false
               });
             })["catch"](function (error) {
-              return _this2.setState(_objectSpread({}, resetResultSetOnChange ? {
+              return _this2.setState(_objectSpread2(_objectSpread2({}, resetResultSetOnChange ? {
                 resultSet: null
-              } : {}, {
+              } : {}), {}, {
                 error: error,
                 isLoading: false
               }));
@@ -8230,9 +8101,9 @@
                 isLoading: false
               });
             })["catch"](function (error) {
-              return _this2.setState(_objectSpread({}, resetResultSetOnChange ? {
+              return _this2.setState(_objectSpread2(_objectSpread2({}, resetResultSetOnChange ? {
                 resultSet: null
-              } : {}, {
+              } : {}), {}, {
                 error: error,
                 isLoading: false
               }));
@@ -8248,9 +8119,9 @@
                 isLoading: false
               });
             })["catch"](function (error) {
-              return _this2.setState(_objectSpread({}, resetResultSetOnChange ? {
+              return _this2.setState(_objectSpread2(_objectSpread2({}, resetResultSetOnChange ? {
                 resultSet: null
-              } : {}, {
+              } : {}), {}, {
                 error: error,
                 isLoading: false
               }));
@@ -8265,11 +8136,11 @@
 
         var cubejsApi = this.cubejsApi();
         var resetResultSetOnChange = this.props.resetResultSetOnChange;
-        this.setState(_objectSpread({
+        this.setState(_objectSpread2(_objectSpread2({
           isLoading: true
         }, resetResultSetOnChange ? {
           resultSet: null
-        } : {}, {
+        } : {}), {}, {
           error: null
         }));
         var resultPromises = Promise.all(toPairs(queries).map(function (_ref3) {
@@ -8291,9 +8162,9 @@
             isLoading: false
           });
         })["catch"](function (error) {
-          return _this3.setState(_objectSpread({}, resetResultSetOnChange ? {
+          return _this3.setState(_objectSpread2(_objectSpread2({}, resetResultSetOnChange ? {
             resultSet: null
-          } : {}, {
+          } : {}), {}, {
             error: error,
             isLoading: false
           }));
@@ -8352,12 +8223,12 @@
     var query = _ref.query,
         restProps = _objectWithoutProperties(_ref, ["query"]);
 
-    return React__default.createElement(QueryRenderer, _extends({
+    return /*#__PURE__*/React__default.createElement(QueryRenderer, _extends({
       queries: {
-        totals: _objectSpread({}, query, {
+        totals: _objectSpread2(_objectSpread2({}, query), {}, {
           dimensions: [],
           timeDimensions: query.timeDimensions ? query.timeDimensions.map(function (td) {
-            return _objectSpread({}, td, {
+            return _objectSpread2(_objectSpread2({}, td), {}, {
               granularity: null
             });
           }) : undefined
@@ -9457,9 +9328,9 @@
 
   var inspectSource$1 = sharedStore$1.inspectSource;
 
-  var WeakMap$2 = global_1$1.WeakMap;
+  var WeakMap$3 = global_1$1.WeakMap;
 
-  var nativeWeakMap$1 = typeof WeakMap$2 === 'function' && /native code/.test(inspectSource$1(WeakMap$2));
+  var nativeWeakMap$1 = typeof WeakMap$3 === 'function' && /native code/.test(inspectSource$1(WeakMap$3));
 
   var isPure$1 = false;
 
@@ -9488,7 +9359,7 @@
 
   var hiddenKeys$2 = {};
 
-  var WeakMap$3 = global_1$1.WeakMap;
+  var WeakMap$4 = global_1$1.WeakMap;
   var set$4, get$1, has$4;
 
   var enforce$1 = function (it) {
@@ -9505,7 +9376,7 @@
   };
 
   if (nativeWeakMap$1) {
-    var store$3 = new WeakMap$3();
+    var store$3 = new WeakMap$4();
     var wmget$1 = store$3.get;
     var wmhas$1 = store$3.has;
     var wmset$1 = store$3.set;
@@ -9686,14 +9557,14 @@
   };
 
   // all object keys, includes non-enumerable and symbols
-  var ownKeys$1 = getBuiltIn$1('Reflect', 'ownKeys') || function ownKeys(it) {
+  var ownKeys$2 = getBuiltIn$1('Reflect', 'ownKeys') || function ownKeys(it) {
     var keys = objectGetOwnPropertyNames$1.f(anObject$1(it));
     var getOwnPropertySymbols = objectGetOwnPropertySymbols$1.f;
     return getOwnPropertySymbols ? keys.concat(getOwnPropertySymbols(it)) : keys;
   };
 
   var copyConstructorProperties$1 = function (target, source) {
-    var keys = ownKeys$1(source);
+    var keys = ownKeys$2(source);
     var defineProperty = objectDefineProperty$1.f;
     var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor$1.f;
     for (var i = 0; i < keys.length; i++) {
@@ -9776,24 +9647,6 @@
     }
   };
 
-  // `IsArray` abstract operation
-  // https://tc39.github.io/ecma262/#sec-isarray
-  var isArray$1 = Array.isArray || function isArray(arg) {
-    return classofRaw$1(arg) == 'Array';
-  };
-
-  // `ToObject` abstract operation
-  // https://tc39.github.io/ecma262/#sec-toobject
-  var toObject$1 = function (argument) {
-    return Object(requireObjectCoercible$1(argument));
-  };
-
-  var createProperty$1 = function (object, key, value) {
-    var propertyKey = toPrimitive$1(key);
-    if (propertyKey in object) objectDefineProperty$1.f(object, propertyKey, createPropertyDescriptor$1(0, value));
-    else object[propertyKey] = value;
-  };
-
   var nativeSymbol$1 = !!Object.getOwnPropertySymbols && !fails$1(function () {
     // Chrome 38 Symbol has incorrect toString conversion
     // eslint-disable-next-line no-undef
@@ -9806,247 +9659,17 @@
     // eslint-disable-next-line no-undef
     && typeof Symbol.iterator == 'symbol';
 
-  var WellKnownSymbolsStore$2 = shared$1('wks');
-  var Symbol$2 = global_1$1.Symbol;
-  var createWellKnownSymbol$1 = useSymbolAsUid$1 ? Symbol$2 : Symbol$2 && Symbol$2.withoutSetter || uid$1;
-
-  var wellKnownSymbol$1 = function (name) {
-    if (!has$3(WellKnownSymbolsStore$2, name)) {
-      if (nativeSymbol$1 && has$3(Symbol$2, name)) WellKnownSymbolsStore$2[name] = Symbol$2[name];
-      else WellKnownSymbolsStore$2[name] = createWellKnownSymbol$1('Symbol.' + name);
-    } return WellKnownSymbolsStore$2[name];
+  // `IsArray` abstract operation
+  // https://tc39.github.io/ecma262/#sec-isarray
+  var isArray$1 = Array.isArray || function isArray(arg) {
+    return classofRaw$1(arg) == 'Array';
   };
 
-  var SPECIES$7 = wellKnownSymbol$1('species');
-
-  // `ArraySpeciesCreate` abstract operation
-  // https://tc39.github.io/ecma262/#sec-arrayspeciescreate
-  var arraySpeciesCreate$1 = function (originalArray, length) {
-    var C;
-    if (isArray$1(originalArray)) {
-      C = originalArray.constructor;
-      // cross-realm fallback
-      if (typeof C == 'function' && (C === Array || isArray$1(C.prototype))) C = undefined;
-      else if (isObject$1(C)) {
-        C = C[SPECIES$7];
-        if (C === null) C = undefined;
-      }
-    } return new (C === undefined ? Array : C)(length === 0 ? 0 : length);
+  // `ToObject` abstract operation
+  // https://tc39.github.io/ecma262/#sec-toobject
+  var toObject$1 = function (argument) {
+    return Object(requireObjectCoercible$1(argument));
   };
-
-  var engineUserAgent$1 = getBuiltIn$1('navigator', 'userAgent') || '';
-
-  var process$4 = global_1$1.process;
-  var versions$1 = process$4 && process$4.versions;
-  var v8$1 = versions$1 && versions$1.v8;
-  var match$2, version$1;
-
-  if (v8$1) {
-    match$2 = v8$1.split('.');
-    version$1 = match$2[0] + match$2[1];
-  } else if (engineUserAgent$1) {
-    match$2 = engineUserAgent$1.match(/Edge\/(\d+)/);
-    if (!match$2 || match$2[1] >= 74) {
-      match$2 = engineUserAgent$1.match(/Chrome\/(\d+)/);
-      if (match$2) version$1 = match$2[1];
-    }
-  }
-
-  var engineV8Version$1 = version$1 && +version$1;
-
-  var SPECIES$8 = wellKnownSymbol$1('species');
-
-  var arrayMethodHasSpeciesSupport$1 = function (METHOD_NAME) {
-    // We can't use this feature detection in V8 since it causes
-    // deoptimization and serious performance degradation
-    // https://github.com/zloirock/core-js/issues/677
-    return engineV8Version$1 >= 51 || !fails$1(function () {
-      var array = [];
-      var constructor = array.constructor = {};
-      constructor[SPECIES$8] = function () {
-        return { foo: 1 };
-      };
-      return array[METHOD_NAME](Boolean).foo !== 1;
-    });
-  };
-
-  var IS_CONCAT_SPREADABLE$1 = wellKnownSymbol$1('isConcatSpreadable');
-  var MAX_SAFE_INTEGER$2 = 0x1FFFFFFFFFFFFF;
-  var MAXIMUM_ALLOWED_INDEX_EXCEEDED$1 = 'Maximum allowed index exceeded';
-
-  // We can't use this feature detection in V8 since it causes
-  // deoptimization and serious performance degradation
-  // https://github.com/zloirock/core-js/issues/679
-  var IS_CONCAT_SPREADABLE_SUPPORT$1 = engineV8Version$1 >= 51 || !fails$1(function () {
-    var array = [];
-    array[IS_CONCAT_SPREADABLE$1] = false;
-    return array.concat()[0] !== array;
-  });
-
-  var SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport$1('concat');
-
-  var isConcatSpreadable$1 = function (O) {
-    if (!isObject$1(O)) return false;
-    var spreadable = O[IS_CONCAT_SPREADABLE$1];
-    return spreadable !== undefined ? !!spreadable : isArray$1(O);
-  };
-
-  var FORCED$6 = !IS_CONCAT_SPREADABLE_SUPPORT$1 || !SPECIES_SUPPORT$1;
-
-  // `Array.prototype.concat` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.concat
-  // with adding support of @@isConcatSpreadable and @@species
-  _export$1({ target: 'Array', proto: true, forced: FORCED$6 }, {
-    concat: function concat(arg) { // eslint-disable-line no-unused-vars
-      var O = toObject$1(this);
-      var A = arraySpeciesCreate$1(O, 0);
-      var n = 0;
-      var i, k, length, len, E;
-      for (i = -1, length = arguments.length; i < length; i++) {
-        E = i === -1 ? O : arguments[i];
-        if (isConcatSpreadable$1(E)) {
-          len = toLength$1(E.length);
-          if (n + len > MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED$1);
-          for (k = 0; k < len; k++, n++) if (k in E) createProperty$1(A, n, E[k]);
-        } else {
-          if (n >= MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED$1);
-          createProperty$1(A, n++, E);
-        }
-      }
-      A.length = n;
-      return A;
-    }
-  });
-
-  var aFunction$3 = function (it) {
-    if (typeof it != 'function') {
-      throw TypeError(String(it) + ' is not a function');
-    } return it;
-  };
-
-  // optional / simple context binding
-  var functionBindContext$1 = function (fn, that, length) {
-    aFunction$3(fn);
-    if (that === undefined) return fn;
-    switch (length) {
-      case 0: return function () {
-        return fn.call(that);
-      };
-      case 1: return function (a) {
-        return fn.call(that, a);
-      };
-      case 2: return function (a, b) {
-        return fn.call(that, a, b);
-      };
-      case 3: return function (a, b, c) {
-        return fn.call(that, a, b, c);
-      };
-    }
-    return function (/* ...args */) {
-      return fn.apply(that, arguments);
-    };
-  };
-
-  var push$1 = [].push;
-
-  // `Array.prototype.{ forEach, map, filter, some, every, find, findIndex }` methods implementation
-  var createMethod$8 = function (TYPE) {
-    var IS_MAP = TYPE == 1;
-    var IS_FILTER = TYPE == 2;
-    var IS_SOME = TYPE == 3;
-    var IS_EVERY = TYPE == 4;
-    var IS_FIND_INDEX = TYPE == 6;
-    var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
-    return function ($this, callbackfn, that, specificCreate) {
-      var O = toObject$1($this);
-      var self = indexedObject$1(O);
-      var boundFunction = functionBindContext$1(callbackfn, that, 3);
-      var length = toLength$1(self.length);
-      var index = 0;
-      var create = specificCreate || arraySpeciesCreate$1;
-      var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
-      var value, result;
-      for (;length > index; index++) if (NO_HOLES || index in self) {
-        value = self[index];
-        result = boundFunction(value, index, O);
-        if (TYPE) {
-          if (IS_MAP) target[index] = result; // map
-          else if (result) switch (TYPE) {
-            case 3: return true;              // some
-            case 5: return value;             // find
-            case 6: return index;             // findIndex
-            case 2: push$1.call(target, value); // filter
-          } else if (IS_EVERY) return false;  // every
-        }
-      }
-      return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;
-    };
-  };
-
-  var arrayIteration$1 = {
-    // `Array.prototype.forEach` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.foreach
-    forEach: createMethod$8(0),
-    // `Array.prototype.map` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.map
-    map: createMethod$8(1),
-    // `Array.prototype.filter` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.filter
-    filter: createMethod$8(2),
-    // `Array.prototype.some` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.some
-    some: createMethod$8(3),
-    // `Array.prototype.every` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.every
-    every: createMethod$8(4),
-    // `Array.prototype.find` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.find
-    find: createMethod$8(5),
-    // `Array.prototype.findIndex` method
-    // https://tc39.github.io/ecma262/#sec-array.prototype.findIndex
-    findIndex: createMethod$8(6)
-  };
-
-  var defineProperty$9 = Object.defineProperty;
-  var cache$1 = {};
-
-  var thrower$1 = function (it) { throw it; };
-
-  var arrayMethodUsesToLength$1 = function (METHOD_NAME, options) {
-    if (has$3(cache$1, METHOD_NAME)) return cache$1[METHOD_NAME];
-    if (!options) options = {};
-    var method = [][METHOD_NAME];
-    var ACCESSORS = has$3(options, 'ACCESSORS') ? options.ACCESSORS : false;
-    var argument0 = has$3(options, 0) ? options[0] : thrower$1;
-    var argument1 = has$3(options, 1) ? options[1] : undefined;
-
-    return cache$1[METHOD_NAME] = !!method && !fails$1(function () {
-      if (ACCESSORS && !descriptors$1) return true;
-      var O = { length: -1 };
-
-      if (ACCESSORS) defineProperty$9(O, 1, { enumerable: true, get: thrower$1 });
-      else O[1] = 1;
-
-      method.call(O, argument0, argument1);
-    });
-  };
-
-  var $filter$1 = arrayIteration$1.filter;
-
-
-
-  var HAS_SPECIES_SUPPORT$4 = arrayMethodHasSpeciesSupport$1('filter');
-  // Edge 14- issue
-  var USES_TO_LENGTH$9 = arrayMethodUsesToLength$1('filter');
-
-  // `Array.prototype.filter` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
-  // with adding support of @@species
-  _export$1({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$4 || !USES_TO_LENGTH$9 }, {
-    filter: function filter(callbackfn /* , thisArg */) {
-      return $filter$1(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    }
-  });
 
   // `Object.keys` method
   // https://tc39.github.io/ecma262/#sec-object.keys
@@ -10139,6 +9762,583 @@
     return Properties === undefined ? result : objectDefineProperties$1(result, Properties);
   };
 
+  var nativeGetOwnPropertyNames$2 = objectGetOwnPropertyNames$1.f;
+
+  var toString$5 = {}.toString;
+
+  var windowNames$1 = typeof window == 'object' && window && Object.getOwnPropertyNames
+    ? Object.getOwnPropertyNames(window) : [];
+
+  var getWindowNames$1 = function (it) {
+    try {
+      return nativeGetOwnPropertyNames$2(it);
+    } catch (error) {
+      return windowNames$1.slice();
+    }
+  };
+
+  // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+  var f$d = function getOwnPropertyNames(it) {
+    return windowNames$1 && toString$5.call(it) == '[object Window]'
+      ? getWindowNames$1(it)
+      : nativeGetOwnPropertyNames$2(toIndexedObject$1(it));
+  };
+
+  var objectGetOwnPropertyNamesExternal$1 = {
+  	f: f$d
+  };
+
+  var WellKnownSymbolsStore$2 = shared$1('wks');
+  var Symbol$2 = global_1$1.Symbol;
+  var createWellKnownSymbol$1 = useSymbolAsUid$1 ? Symbol$2 : Symbol$2 && Symbol$2.withoutSetter || uid$1;
+
+  var wellKnownSymbol$1 = function (name) {
+    if (!has$3(WellKnownSymbolsStore$2, name)) {
+      if (nativeSymbol$1 && has$3(Symbol$2, name)) WellKnownSymbolsStore$2[name] = Symbol$2[name];
+      else WellKnownSymbolsStore$2[name] = createWellKnownSymbol$1('Symbol.' + name);
+    } return WellKnownSymbolsStore$2[name];
+  };
+
+  var f$e = wellKnownSymbol$1;
+
+  var wellKnownSymbolWrapped$1 = {
+  	f: f$e
+  };
+
+  var defineProperty$9 = objectDefineProperty$1.f;
+
+  var defineWellKnownSymbol$1 = function (NAME) {
+    var Symbol = path$2.Symbol || (path$2.Symbol = {});
+    if (!has$3(Symbol, NAME)) defineProperty$9(Symbol, NAME, {
+      value: wellKnownSymbolWrapped$1.f(NAME)
+    });
+  };
+
+  var defineProperty$a = objectDefineProperty$1.f;
+
+
+
+  var TO_STRING_TAG$4 = wellKnownSymbol$1('toStringTag');
+
+  var setToStringTag$1 = function (it, TAG, STATIC) {
+    if (it && !has$3(it = STATIC ? it : it.prototype, TO_STRING_TAG$4)) {
+      defineProperty$a(it, TO_STRING_TAG$4, { configurable: true, value: TAG });
+    }
+  };
+
+  var aFunction$3 = function (it) {
+    if (typeof it != 'function') {
+      throw TypeError(String(it) + ' is not a function');
+    } return it;
+  };
+
+  // optional / simple context binding
+  var functionBindContext$1 = function (fn, that, length) {
+    aFunction$3(fn);
+    if (that === undefined) return fn;
+    switch (length) {
+      case 0: return function () {
+        return fn.call(that);
+      };
+      case 1: return function (a) {
+        return fn.call(that, a);
+      };
+      case 2: return function (a, b) {
+        return fn.call(that, a, b);
+      };
+      case 3: return function (a, b, c) {
+        return fn.call(that, a, b, c);
+      };
+    }
+    return function (/* ...args */) {
+      return fn.apply(that, arguments);
+    };
+  };
+
+  var SPECIES$7 = wellKnownSymbol$1('species');
+
+  // `ArraySpeciesCreate` abstract operation
+  // https://tc39.github.io/ecma262/#sec-arrayspeciescreate
+  var arraySpeciesCreate$1 = function (originalArray, length) {
+    var C;
+    if (isArray$1(originalArray)) {
+      C = originalArray.constructor;
+      // cross-realm fallback
+      if (typeof C == 'function' && (C === Array || isArray$1(C.prototype))) C = undefined;
+      else if (isObject$1(C)) {
+        C = C[SPECIES$7];
+        if (C === null) C = undefined;
+      }
+    } return new (C === undefined ? Array : C)(length === 0 ? 0 : length);
+  };
+
+  var push$1 = [].push;
+
+  // `Array.prototype.{ forEach, map, filter, some, every, find, findIndex }` methods implementation
+  var createMethod$8 = function (TYPE) {
+    var IS_MAP = TYPE == 1;
+    var IS_FILTER = TYPE == 2;
+    var IS_SOME = TYPE == 3;
+    var IS_EVERY = TYPE == 4;
+    var IS_FIND_INDEX = TYPE == 6;
+    var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
+    return function ($this, callbackfn, that, specificCreate) {
+      var O = toObject$1($this);
+      var self = indexedObject$1(O);
+      var boundFunction = functionBindContext$1(callbackfn, that, 3);
+      var length = toLength$1(self.length);
+      var index = 0;
+      var create = specificCreate || arraySpeciesCreate$1;
+      var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
+      var value, result;
+      for (;length > index; index++) if (NO_HOLES || index in self) {
+        value = self[index];
+        result = boundFunction(value, index, O);
+        if (TYPE) {
+          if (IS_MAP) target[index] = result; // map
+          else if (result) switch (TYPE) {
+            case 3: return true;              // some
+            case 5: return value;             // find
+            case 6: return index;             // findIndex
+            case 2: push$1.call(target, value); // filter
+          } else if (IS_EVERY) return false;  // every
+        }
+      }
+      return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;
+    };
+  };
+
+  var arrayIteration$1 = {
+    // `Array.prototype.forEach` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.foreach
+    forEach: createMethod$8(0),
+    // `Array.prototype.map` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.map
+    map: createMethod$8(1),
+    // `Array.prototype.filter` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.filter
+    filter: createMethod$8(2),
+    // `Array.prototype.some` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.some
+    some: createMethod$8(3),
+    // `Array.prototype.every` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.every
+    every: createMethod$8(4),
+    // `Array.prototype.find` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.find
+    find: createMethod$8(5),
+    // `Array.prototype.findIndex` method
+    // https://tc39.github.io/ecma262/#sec-array.prototype.findIndex
+    findIndex: createMethod$8(6)
+  };
+
+  var $forEach$2 = arrayIteration$1.forEach;
+
+  var HIDDEN$1 = sharedKey$1('hidden');
+  var SYMBOL$1 = 'Symbol';
+  var PROTOTYPE$3 = 'prototype';
+  var TO_PRIMITIVE$1 = wellKnownSymbol$1('toPrimitive');
+  var setInternalState$6 = internalState$1.set;
+  var getInternalState$4 = internalState$1.getterFor(SYMBOL$1);
+  var ObjectPrototype$2 = Object[PROTOTYPE$3];
+  var $Symbol$1 = global_1$1.Symbol;
+  var $stringify$1 = getBuiltIn$1('JSON', 'stringify');
+  var nativeGetOwnPropertyDescriptor$3 = objectGetOwnPropertyDescriptor$1.f;
+  var nativeDefineProperty$3 = objectDefineProperty$1.f;
+  var nativeGetOwnPropertyNames$3 = objectGetOwnPropertyNamesExternal$1.f;
+  var nativePropertyIsEnumerable$3 = objectPropertyIsEnumerable$1.f;
+  var AllSymbols$1 = shared$1('symbols');
+  var ObjectPrototypeSymbols$1 = shared$1('op-symbols');
+  var StringToSymbolRegistry$1 = shared$1('string-to-symbol-registry');
+  var SymbolToStringRegistry$1 = shared$1('symbol-to-string-registry');
+  var WellKnownSymbolsStore$3 = shared$1('wks');
+  var QObject$1 = global_1$1.QObject;
+  // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+  var USE_SETTER$1 = !QObject$1 || !QObject$1[PROTOTYPE$3] || !QObject$1[PROTOTYPE$3].findChild;
+
+  // fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+  var setSymbolDescriptor$1 = descriptors$1 && fails$1(function () {
+    return objectCreate$1(nativeDefineProperty$3({}, 'a', {
+      get: function () { return nativeDefineProperty$3(this, 'a', { value: 7 }).a; }
+    })).a != 7;
+  }) ? function (O, P, Attributes) {
+    var ObjectPrototypeDescriptor = nativeGetOwnPropertyDescriptor$3(ObjectPrototype$2, P);
+    if (ObjectPrototypeDescriptor) delete ObjectPrototype$2[P];
+    nativeDefineProperty$3(O, P, Attributes);
+    if (ObjectPrototypeDescriptor && O !== ObjectPrototype$2) {
+      nativeDefineProperty$3(ObjectPrototype$2, P, ObjectPrototypeDescriptor);
+    }
+  } : nativeDefineProperty$3;
+
+  var wrap$1 = function (tag, description) {
+    var symbol = AllSymbols$1[tag] = objectCreate$1($Symbol$1[PROTOTYPE$3]);
+    setInternalState$6(symbol, {
+      type: SYMBOL$1,
+      tag: tag,
+      description: description
+    });
+    if (!descriptors$1) symbol.description = description;
+    return symbol;
+  };
+
+  var isSymbol$1 = useSymbolAsUid$1 ? function (it) {
+    return typeof it == 'symbol';
+  } : function (it) {
+    return Object(it) instanceof $Symbol$1;
+  };
+
+  var $defineProperty$1 = function defineProperty(O, P, Attributes) {
+    if (O === ObjectPrototype$2) $defineProperty$1(ObjectPrototypeSymbols$1, P, Attributes);
+    anObject$1(O);
+    var key = toPrimitive$1(P, true);
+    anObject$1(Attributes);
+    if (has$3(AllSymbols$1, key)) {
+      if (!Attributes.enumerable) {
+        if (!has$3(O, HIDDEN$1)) nativeDefineProperty$3(O, HIDDEN$1, createPropertyDescriptor$1(1, {}));
+        O[HIDDEN$1][key] = true;
+      } else {
+        if (has$3(O, HIDDEN$1) && O[HIDDEN$1][key]) O[HIDDEN$1][key] = false;
+        Attributes = objectCreate$1(Attributes, { enumerable: createPropertyDescriptor$1(0, false) });
+      } return setSymbolDescriptor$1(O, key, Attributes);
+    } return nativeDefineProperty$3(O, key, Attributes);
+  };
+
+  var $defineProperties$1 = function defineProperties(O, Properties) {
+    anObject$1(O);
+    var properties = toIndexedObject$1(Properties);
+    var keys = objectKeys$1(properties).concat($getOwnPropertySymbols$1(properties));
+    $forEach$2(keys, function (key) {
+      if (!descriptors$1 || $propertyIsEnumerable$1.call(properties, key)) $defineProperty$1(O, key, properties[key]);
+    });
+    return O;
+  };
+
+  var $create$1 = function create(O, Properties) {
+    return Properties === undefined ? objectCreate$1(O) : $defineProperties$1(objectCreate$1(O), Properties);
+  };
+
+  var $propertyIsEnumerable$1 = function propertyIsEnumerable(V) {
+    var P = toPrimitive$1(V, true);
+    var enumerable = nativePropertyIsEnumerable$3.call(this, P);
+    if (this === ObjectPrototype$2 && has$3(AllSymbols$1, P) && !has$3(ObjectPrototypeSymbols$1, P)) return false;
+    return enumerable || !has$3(this, P) || !has$3(AllSymbols$1, P) || has$3(this, HIDDEN$1) && this[HIDDEN$1][P] ? enumerable : true;
+  };
+
+  var $getOwnPropertyDescriptor$1 = function getOwnPropertyDescriptor(O, P) {
+    var it = toIndexedObject$1(O);
+    var key = toPrimitive$1(P, true);
+    if (it === ObjectPrototype$2 && has$3(AllSymbols$1, key) && !has$3(ObjectPrototypeSymbols$1, key)) return;
+    var descriptor = nativeGetOwnPropertyDescriptor$3(it, key);
+    if (descriptor && has$3(AllSymbols$1, key) && !(has$3(it, HIDDEN$1) && it[HIDDEN$1][key])) {
+      descriptor.enumerable = true;
+    }
+    return descriptor;
+  };
+
+  var $getOwnPropertyNames$1 = function getOwnPropertyNames(O) {
+    var names = nativeGetOwnPropertyNames$3(toIndexedObject$1(O));
+    var result = [];
+    $forEach$2(names, function (key) {
+      if (!has$3(AllSymbols$1, key) && !has$3(hiddenKeys$2, key)) result.push(key);
+    });
+    return result;
+  };
+
+  var $getOwnPropertySymbols$1 = function getOwnPropertySymbols(O) {
+    var IS_OBJECT_PROTOTYPE = O === ObjectPrototype$2;
+    var names = nativeGetOwnPropertyNames$3(IS_OBJECT_PROTOTYPE ? ObjectPrototypeSymbols$1 : toIndexedObject$1(O));
+    var result = [];
+    $forEach$2(names, function (key) {
+      if (has$3(AllSymbols$1, key) && (!IS_OBJECT_PROTOTYPE || has$3(ObjectPrototype$2, key))) {
+        result.push(AllSymbols$1[key]);
+      }
+    });
+    return result;
+  };
+
+  // `Symbol` constructor
+  // https://tc39.github.io/ecma262/#sec-symbol-constructor
+  if (!nativeSymbol$1) {
+    $Symbol$1 = function Symbol() {
+      if (this instanceof $Symbol$1) throw TypeError('Symbol is not a constructor');
+      var description = !arguments.length || arguments[0] === undefined ? undefined : String(arguments[0]);
+      var tag = uid$1(description);
+      var setter = function (value) {
+        if (this === ObjectPrototype$2) setter.call(ObjectPrototypeSymbols$1, value);
+        if (has$3(this, HIDDEN$1) && has$3(this[HIDDEN$1], tag)) this[HIDDEN$1][tag] = false;
+        setSymbolDescriptor$1(this, tag, createPropertyDescriptor$1(1, value));
+      };
+      if (descriptors$1 && USE_SETTER$1) setSymbolDescriptor$1(ObjectPrototype$2, tag, { configurable: true, set: setter });
+      return wrap$1(tag, description);
+    };
+
+    redefine$1($Symbol$1[PROTOTYPE$3], 'toString', function toString() {
+      return getInternalState$4(this).tag;
+    });
+
+    redefine$1($Symbol$1, 'withoutSetter', function (description) {
+      return wrap$1(uid$1(description), description);
+    });
+
+    objectPropertyIsEnumerable$1.f = $propertyIsEnumerable$1;
+    objectDefineProperty$1.f = $defineProperty$1;
+    objectGetOwnPropertyDescriptor$1.f = $getOwnPropertyDescriptor$1;
+    objectGetOwnPropertyNames$1.f = objectGetOwnPropertyNamesExternal$1.f = $getOwnPropertyNames$1;
+    objectGetOwnPropertySymbols$1.f = $getOwnPropertySymbols$1;
+
+    wellKnownSymbolWrapped$1.f = function (name) {
+      return wrap$1(wellKnownSymbol$1(name), name);
+    };
+
+    if (descriptors$1) {
+      // https://github.com/tc39/proposal-Symbol-description
+      nativeDefineProperty$3($Symbol$1[PROTOTYPE$3], 'description', {
+        configurable: true,
+        get: function description() {
+          return getInternalState$4(this).description;
+        }
+      });
+      if (!isPure$1) {
+        redefine$1(ObjectPrototype$2, 'propertyIsEnumerable', $propertyIsEnumerable$1, { unsafe: true });
+      }
+    }
+  }
+
+  _export$1({ global: true, wrap: true, forced: !nativeSymbol$1, sham: !nativeSymbol$1 }, {
+    Symbol: $Symbol$1
+  });
+
+  $forEach$2(objectKeys$1(WellKnownSymbolsStore$3), function (name) {
+    defineWellKnownSymbol$1(name);
+  });
+
+  _export$1({ target: SYMBOL$1, stat: true, forced: !nativeSymbol$1 }, {
+    // `Symbol.for` method
+    // https://tc39.github.io/ecma262/#sec-symbol.for
+    'for': function (key) {
+      var string = String(key);
+      if (has$3(StringToSymbolRegistry$1, string)) return StringToSymbolRegistry$1[string];
+      var symbol = $Symbol$1(string);
+      StringToSymbolRegistry$1[string] = symbol;
+      SymbolToStringRegistry$1[symbol] = string;
+      return symbol;
+    },
+    // `Symbol.keyFor` method
+    // https://tc39.github.io/ecma262/#sec-symbol.keyfor
+    keyFor: function keyFor(sym) {
+      if (!isSymbol$1(sym)) throw TypeError(sym + ' is not a symbol');
+      if (has$3(SymbolToStringRegistry$1, sym)) return SymbolToStringRegistry$1[sym];
+    },
+    useSetter: function () { USE_SETTER$1 = true; },
+    useSimple: function () { USE_SETTER$1 = false; }
+  });
+
+  _export$1({ target: 'Object', stat: true, forced: !nativeSymbol$1, sham: !descriptors$1 }, {
+    // `Object.create` method
+    // https://tc39.github.io/ecma262/#sec-object.create
+    create: $create$1,
+    // `Object.defineProperty` method
+    // https://tc39.github.io/ecma262/#sec-object.defineproperty
+    defineProperty: $defineProperty$1,
+    // `Object.defineProperties` method
+    // https://tc39.github.io/ecma262/#sec-object.defineproperties
+    defineProperties: $defineProperties$1,
+    // `Object.getOwnPropertyDescriptor` method
+    // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptors
+    getOwnPropertyDescriptor: $getOwnPropertyDescriptor$1
+  });
+
+  _export$1({ target: 'Object', stat: true, forced: !nativeSymbol$1 }, {
+    // `Object.getOwnPropertyNames` method
+    // https://tc39.github.io/ecma262/#sec-object.getownpropertynames
+    getOwnPropertyNames: $getOwnPropertyNames$1,
+    // `Object.getOwnPropertySymbols` method
+    // https://tc39.github.io/ecma262/#sec-object.getownpropertysymbols
+    getOwnPropertySymbols: $getOwnPropertySymbols$1
+  });
+
+  // Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
+  // https://bugs.chromium.org/p/v8/issues/detail?id=3443
+  _export$1({ target: 'Object', stat: true, forced: fails$1(function () { objectGetOwnPropertySymbols$1.f(1); }) }, {
+    getOwnPropertySymbols: function getOwnPropertySymbols(it) {
+      return objectGetOwnPropertySymbols$1.f(toObject$1(it));
+    }
+  });
+
+  // `JSON.stringify` method behavior with symbols
+  // https://tc39.github.io/ecma262/#sec-json.stringify
+  if ($stringify$1) {
+    var FORCED_JSON_STRINGIFY$1 = !nativeSymbol$1 || fails$1(function () {
+      var symbol = $Symbol$1();
+      // MS Edge converts symbol values to JSON as {}
+      return $stringify$1([symbol]) != '[null]'
+        // WebKit converts symbol values to JSON as null
+        || $stringify$1({ a: symbol }) != '{}'
+        // V8 throws on boxed symbols
+        || $stringify$1(Object(symbol)) != '{}';
+    });
+
+    _export$1({ target: 'JSON', stat: true, forced: FORCED_JSON_STRINGIFY$1 }, {
+      // eslint-disable-next-line no-unused-vars
+      stringify: function stringify(it, replacer, space) {
+        var args = [it];
+        var index = 1;
+        var $replacer;
+        while (arguments.length > index) args.push(arguments[index++]);
+        $replacer = replacer;
+        if (!isObject$1(replacer) && it === undefined || isSymbol$1(it)) return; // IE8 returns string on undefined
+        if (!isArray$1(replacer)) replacer = function (key, value) {
+          if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
+          if (!isSymbol$1(value)) return value;
+        };
+        args[1] = replacer;
+        return $stringify$1.apply(null, args);
+      }
+    });
+  }
+
+  // `Symbol.prototype[@@toPrimitive]` method
+  // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@toprimitive
+  if (!$Symbol$1[PROTOTYPE$3][TO_PRIMITIVE$1]) {
+    createNonEnumerableProperty$1($Symbol$1[PROTOTYPE$3], TO_PRIMITIVE$1, $Symbol$1[PROTOTYPE$3].valueOf);
+  }
+  // `Symbol.prototype[@@toStringTag]` property
+  // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@tostringtag
+  setToStringTag$1($Symbol$1, SYMBOL$1);
+
+  hiddenKeys$2[HIDDEN$1] = true;
+
+  var createProperty$1 = function (object, key, value) {
+    var propertyKey = toPrimitive$1(key);
+    if (propertyKey in object) objectDefineProperty$1.f(object, propertyKey, createPropertyDescriptor$1(0, value));
+    else object[propertyKey] = value;
+  };
+
+  var engineUserAgent$1 = getBuiltIn$1('navigator', 'userAgent') || '';
+
+  var process$4 = global_1$1.process;
+  var versions$1 = process$4 && process$4.versions;
+  var v8$1 = versions$1 && versions$1.v8;
+  var match$2, version$1;
+
+  if (v8$1) {
+    match$2 = v8$1.split('.');
+    version$1 = match$2[0] + match$2[1];
+  } else if (engineUserAgent$1) {
+    match$2 = engineUserAgent$1.match(/Edge\/(\d+)/);
+    if (!match$2 || match$2[1] >= 74) {
+      match$2 = engineUserAgent$1.match(/Chrome\/(\d+)/);
+      if (match$2) version$1 = match$2[1];
+    }
+  }
+
+  var engineV8Version$1 = version$1 && +version$1;
+
+  var SPECIES$8 = wellKnownSymbol$1('species');
+
+  var arrayMethodHasSpeciesSupport$1 = function (METHOD_NAME) {
+    // We can't use this feature detection in V8 since it causes
+    // deoptimization and serious performance degradation
+    // https://github.com/zloirock/core-js/issues/677
+    return engineV8Version$1 >= 51 || !fails$1(function () {
+      var array = [];
+      var constructor = array.constructor = {};
+      constructor[SPECIES$8] = function () {
+        return { foo: 1 };
+      };
+      return array[METHOD_NAME](Boolean).foo !== 1;
+    });
+  };
+
+  var IS_CONCAT_SPREADABLE$1 = wellKnownSymbol$1('isConcatSpreadable');
+  var MAX_SAFE_INTEGER$2 = 0x1FFFFFFFFFFFFF;
+  var MAXIMUM_ALLOWED_INDEX_EXCEEDED$1 = 'Maximum allowed index exceeded';
+
+  // We can't use this feature detection in V8 since it causes
+  // deoptimization and serious performance degradation
+  // https://github.com/zloirock/core-js/issues/679
+  var IS_CONCAT_SPREADABLE_SUPPORT$1 = engineV8Version$1 >= 51 || !fails$1(function () {
+    var array = [];
+    array[IS_CONCAT_SPREADABLE$1] = false;
+    return array.concat()[0] !== array;
+  });
+
+  var SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport$1('concat');
+
+  var isConcatSpreadable$1 = function (O) {
+    if (!isObject$1(O)) return false;
+    var spreadable = O[IS_CONCAT_SPREADABLE$1];
+    return spreadable !== undefined ? !!spreadable : isArray$1(O);
+  };
+
+  var FORCED$6 = !IS_CONCAT_SPREADABLE_SUPPORT$1 || !SPECIES_SUPPORT$1;
+
+  // `Array.prototype.concat` method
+  // https://tc39.github.io/ecma262/#sec-array.prototype.concat
+  // with adding support of @@isConcatSpreadable and @@species
+  _export$1({ target: 'Array', proto: true, forced: FORCED$6 }, {
+    concat: function concat(arg) { // eslint-disable-line no-unused-vars
+      var O = toObject$1(this);
+      var A = arraySpeciesCreate$1(O, 0);
+      var n = 0;
+      var i, k, length, len, E;
+      for (i = -1, length = arguments.length; i < length; i++) {
+        E = i === -1 ? O : arguments[i];
+        if (isConcatSpreadable$1(E)) {
+          len = toLength$1(E.length);
+          if (n + len > MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED$1);
+          for (k = 0; k < len; k++, n++) if (k in E) createProperty$1(A, n, E[k]);
+        } else {
+          if (n >= MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED$1);
+          createProperty$1(A, n++, E);
+        }
+      }
+      A.length = n;
+      return A;
+    }
+  });
+
+  var defineProperty$b = Object.defineProperty;
+  var cache$1 = {};
+
+  var thrower$1 = function (it) { throw it; };
+
+  var arrayMethodUsesToLength$1 = function (METHOD_NAME, options) {
+    if (has$3(cache$1, METHOD_NAME)) return cache$1[METHOD_NAME];
+    if (!options) options = {};
+    var method = [][METHOD_NAME];
+    var ACCESSORS = has$3(options, 'ACCESSORS') ? options.ACCESSORS : false;
+    var argument0 = has$3(options, 0) ? options[0] : thrower$1;
+    var argument1 = has$3(options, 1) ? options[1] : undefined;
+
+    return cache$1[METHOD_NAME] = !!method && !fails$1(function () {
+      if (ACCESSORS && !descriptors$1) return true;
+      var O = { length: -1 };
+
+      if (ACCESSORS) defineProperty$b(O, 1, { enumerable: true, get: thrower$1 });
+      else O[1] = 1;
+
+      method.call(O, argument0, argument1);
+    });
+  };
+
+  var $filter$1 = arrayIteration$1.filter;
+
+
+
+  var HAS_SPECIES_SUPPORT$4 = arrayMethodHasSpeciesSupport$1('filter');
+  // Edge 14- issue
+  var USES_TO_LENGTH$9 = arrayMethodUsesToLength$1('filter');
+
+  // `Array.prototype.filter` method
+  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
+  // with adding support of @@species
+  _export$1({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$4 || !USES_TO_LENGTH$9 }, {
+    filter: function filter(callbackfn /* , thisArg */) {
+      return $filter$1(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    }
+  });
+
   var UNSCOPABLES$1 = wellKnownSymbol$1('unscopables');
   var ArrayPrototype$2 = Array.prototype;
 
@@ -10187,7 +10387,7 @@
     });
   };
 
-  var $forEach$2 = arrayIteration$1.forEach;
+  var $forEach$3 = arrayIteration$1.forEach;
 
 
 
@@ -10197,7 +10397,7 @@
   // `Array.prototype.forEach` method implementation
   // https://tc39.github.io/ecma262/#sec-array.prototype.foreach
   var arrayForEach$1 = (!STRICT_METHOD$6 || !USES_TO_LENGTH$b) ? function forEach(callbackfn /* , thisArg */) {
-    return $forEach$2(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    return $forEach$3(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   } : [].forEach;
 
   // `Array.prototype.forEach` method
@@ -10228,14 +10428,14 @@
     return it !== undefined && (iterators$1.Array === it || ArrayPrototype$3[ITERATOR$6] === it);
   };
 
-  var TO_STRING_TAG$4 = wellKnownSymbol$1('toStringTag');
+  var TO_STRING_TAG$5 = wellKnownSymbol$1('toStringTag');
   var test$4 = {};
 
-  test$4[TO_STRING_TAG$4] = 'z';
+  test$4[TO_STRING_TAG$5] = 'z';
 
   var toStringTagSupport$1 = String(test$4) === '[object z]';
 
-  var TO_STRING_TAG$5 = wellKnownSymbol$1('toStringTag');
+  var TO_STRING_TAG$6 = wellKnownSymbol$1('toStringTag');
   // ES3 wrong here
   var CORRECT_ARGUMENTS$1 = classofRaw$1(function () { return arguments; }()) == 'Arguments';
 
@@ -10251,7 +10451,7 @@
     var O, tag, result;
     return it === undefined ? 'Undefined' : it === null ? 'Null'
       // @@toStringTag case
-      : typeof (tag = tryGet$1(O = Object(it), TO_STRING_TAG$5)) == 'string' ? tag
+      : typeof (tag = tryGet$1(O = Object(it), TO_STRING_TAG$6)) == 'string' ? tag
       // builtinTag case
       : CORRECT_ARGUMENTS$1 ? classofRaw$1(O)
       // ES3 arguments fallback
@@ -10373,7 +10573,7 @@
   });
 
   var IE_PROTO$3 = sharedKey$1('IE_PROTO');
-  var ObjectPrototype$2 = Object.prototype;
+  var ObjectPrototype$3 = Object.prototype;
 
   // `Object.getPrototypeOf` method
   // https://tc39.github.io/ecma262/#sec-object.getprototypeof
@@ -10382,7 +10582,7 @@
     if (has$3(O, IE_PROTO$3)) return O[IE_PROTO$3];
     if (typeof O.constructor == 'function' && O instanceof O.constructor) {
       return O.constructor.prototype;
-    } return O instanceof Object ? ObjectPrototype$2 : null;
+    } return O instanceof Object ? ObjectPrototype$3 : null;
   };
 
   var ITERATOR$9 = wellKnownSymbol$1('iterator');
@@ -10414,18 +10614,6 @@
   var iteratorsCore$1 = {
     IteratorPrototype: IteratorPrototype$3,
     BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS$2
-  };
-
-  var defineProperty$a = objectDefineProperty$1.f;
-
-
-
-  var TO_STRING_TAG$6 = wellKnownSymbol$1('toStringTag');
-
-  var setToStringTag$1 = function (it, TAG, STATIC) {
-    if (it && !has$3(it = STATIC ? it : it.prototype, TO_STRING_TAG$6)) {
-      defineProperty$a(it, TO_STRING_TAG$6, { configurable: true, value: TAG });
-    }
   };
 
   var IteratorPrototype$4 = iteratorsCore$1.IteratorPrototype;
@@ -10550,8 +10738,8 @@
   };
 
   var ARRAY_ITERATOR$1 = 'Array Iterator';
-  var setInternalState$6 = internalState$1.set;
-  var getInternalState$4 = internalState$1.getterFor(ARRAY_ITERATOR$1);
+  var setInternalState$7 = internalState$1.set;
+  var getInternalState$5 = internalState$1.getterFor(ARRAY_ITERATOR$1);
 
   // `Array.prototype.entries` method
   // https://tc39.github.io/ecma262/#sec-array.prototype.entries
@@ -10564,7 +10752,7 @@
   // `CreateArrayIterator` internal method
   // https://tc39.github.io/ecma262/#sec-createarrayiterator
   var es_array_iterator$1 = defineIterator$1(Array, 'Array', function (iterated, kind) {
-    setInternalState$6(this, {
+    setInternalState$7(this, {
       type: ARRAY_ITERATOR$1,
       target: toIndexedObject$1(iterated), // target
       index: 0,                          // next index
@@ -10573,7 +10761,7 @@
   // `%ArrayIteratorPrototype%.next` method
   // https://tc39.github.io/ecma262/#sec-%arrayiteratorprototype%.next
   }, function () {
-    var state = getInternalState$4(this);
+    var state = getInternalState$5(this);
     var target = state.target;
     var kind = state.kind;
     var index = state.index++;
@@ -10693,7 +10881,7 @@
     });
   }
 
-  var defineProperty$b = objectDefineProperty$1.f;
+  var defineProperty$c = objectDefineProperty$1.f;
 
   var FunctionPrototype$1 = Function.prototype;
   var FunctionPrototypeToString$1 = FunctionPrototype$1.toString;
@@ -10703,7 +10891,7 @@
   // Function instances `.name` property
   // https://tc39.github.io/ecma262/#sec-function-instances-name
   if (descriptors$1 && !(NAME$1 in FunctionPrototype$1)) {
-    defineProperty$b(FunctionPrototype$1, NAME$1, {
+    defineProperty$c(FunctionPrototype$1, NAME$1, {
       configurable: true,
       get: function () {
         try {
@@ -10762,7 +10950,7 @@
 
   var getOwnPropertyNames$2 = objectGetOwnPropertyNames$1.f;
   var getOwnPropertyDescriptor$6 = objectGetOwnPropertyDescriptor$1.f;
-  var defineProperty$c = objectDefineProperty$1.f;
+  var defineProperty$d = objectDefineProperty$1.f;
   var trim$2 = stringTrim$1.trim;
 
   var NUMBER$1 = 'Number';
@@ -10820,7 +11008,7 @@
       'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
     ).split(','), j$1 = 0, key$1; keys$5.length > j$1; j$1++) {
       if (has$3(NativeNumber$1, key$1 = keys$5[j$1]) && !has$3(NumberWrapper$1, key$1)) {
-        defineProperty$c(NumberWrapper$1, key$1, getOwnPropertyDescriptor$6(NativeNumber$1, key$1));
+        defineProperty$d(NumberWrapper$1, key$1, getOwnPropertyDescriptor$6(NativeNumber$1, key$1));
       }
     }
     NumberWrapper$1.prototype = NumberPrototype$1;
@@ -10858,16 +11046,16 @@
   });
 
   var nativeAssign$1 = Object.assign;
-  var defineProperty$d = Object.defineProperty;
+  var defineProperty$e = Object.defineProperty;
 
   // `Object.assign` method
   // https://tc39.github.io/ecma262/#sec-object.assign
   var objectAssign$1 = !nativeAssign$1 || fails$1(function () {
     // should have correct order of operations (Edge bug)
-    if (descriptors$1 && nativeAssign$1({ b: 1 }, nativeAssign$1(defineProperty$d({}, 'a', {
+    if (descriptors$1 && nativeAssign$1({ b: 1 }, nativeAssign$1(defineProperty$e({}, 'a', {
       enumerable: true,
       get: function () {
-        defineProperty$d(this, 'b', {
+        defineProperty$e(this, 'b', {
           value: 3,
           enumerable: false
         });
@@ -10907,17 +11095,55 @@
     assign: objectAssign$1
   });
 
+  // `Object.defineProperties` method
+  // https://tc39.github.io/ecma262/#sec-object.defineproperties
+  _export$1({ target: 'Object', stat: true, forced: !descriptors$1, sham: !descriptors$1 }, {
+    defineProperties: objectDefineProperties$1
+  });
+
   // `Object.defineProperty` method
   // https://tc39.github.io/ecma262/#sec-object.defineproperty
   _export$1({ target: 'Object', stat: true, forced: !descriptors$1, sham: !descriptors$1 }, {
     defineProperty: objectDefineProperty$1.f
   });
 
-  var FAILS_ON_PRIMITIVES$2 = fails$1(function () { objectKeys$1(1); });
+  var nativeGetOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor$1.f;
+
+
+  var FAILS_ON_PRIMITIVES$2 = fails$1(function () { nativeGetOwnPropertyDescriptor$4(1); });
+  var FORCED$8 = !descriptors$1 || FAILS_ON_PRIMITIVES$2;
+
+  // `Object.getOwnPropertyDescriptor` method
+  // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptor
+  _export$1({ target: 'Object', stat: true, forced: FORCED$8, sham: !descriptors$1 }, {
+    getOwnPropertyDescriptor: function getOwnPropertyDescriptor(it, key) {
+      return nativeGetOwnPropertyDescriptor$4(toIndexedObject$1(it), key);
+    }
+  });
+
+  // `Object.getOwnPropertyDescriptors` method
+  // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptors
+  _export$1({ target: 'Object', stat: true, sham: !descriptors$1 }, {
+    getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
+      var O = toIndexedObject$1(object);
+      var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor$1.f;
+      var keys = ownKeys$2(O);
+      var result = {};
+      var index = 0;
+      var key, descriptor;
+      while (keys.length > index) {
+        descriptor = getOwnPropertyDescriptor(O, key = keys[index++]);
+        if (descriptor !== undefined) createProperty$1(result, key, descriptor);
+      }
+      return result;
+    }
+  });
+
+  var FAILS_ON_PRIMITIVES$3 = fails$1(function () { objectKeys$1(1); });
 
   // `Object.keys` method
   // https://tc39.github.io/ecma262/#sec-object.keys
-  _export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$2 }, {
+  _export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$3 }, {
     keys: function keys(it) {
       return objectKeys$1(toObject$1(it));
     }
@@ -11243,12 +11469,12 @@
   };
 
   // 25.4.1.5 NewPromiseCapability(C)
-  var f$d = function (C) {
+  var f$f = function (C) {
     return new PromiseCapability$1(C);
   };
 
   var newPromiseCapability$2 = {
-  	f: f$d
+  	f: f$f
   };
 
   var promiseResolve$1 = function (C, x) {
@@ -11288,8 +11514,8 @@
 
   var SPECIES$b = wellKnownSymbol$1('species');
   var PROMISE$1 = 'Promise';
-  var getInternalState$5 = internalState$1.get;
-  var setInternalState$7 = internalState$1.set;
+  var getInternalState$6 = internalState$1.get;
+  var setInternalState$8 = internalState$1.set;
   var getInternalPromiseState$1 = internalState$1.getterFor(PROMISE$1);
   var PromiseConstructor$1 = nativePromiseConstructor$1;
   var TypeError$2 = global_1$1.TypeError;
@@ -11309,7 +11535,7 @@
   var UNHANDLED$1 = 2;
   var Internal$1, OwnPromiseCapability$1, PromiseWrapper$1, nativeThen$1;
 
-  var FORCED$8 = isForced_1$1(PROMISE$1, function () {
+  var FORCED$9 = isForced_1$1(PROMISE$1, function () {
     var GLOBAL_CORE_JS_PROMISE = inspectSource$1(PromiseConstructor$1) !== String(PromiseConstructor$1);
     if (!GLOBAL_CORE_JS_PROMISE) {
       // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
@@ -11335,7 +11561,7 @@
     return !(promise.then(function () { /* empty */ }) instanceof FakePromise);
   });
 
-  var INCORRECT_ITERATION$2 = FORCED$8 || !checkCorrectnessOfIteration$1(function (iterable) {
+  var INCORRECT_ITERATION$2 = FORCED$9 || !checkCorrectnessOfIteration$1(function (iterable) {
     PromiseConstructor$1.all(iterable)['catch'](function () { /* empty */ });
   });
 
@@ -11481,13 +11707,13 @@
   };
 
   // constructor polyfill
-  if (FORCED$8) {
+  if (FORCED$9) {
     // 25.4.3.1 Promise(executor)
     PromiseConstructor$1 = function Promise(executor) {
       anInstance$1(this, PromiseConstructor$1, PROMISE$1);
       aFunction$3(executor);
       Internal$1.call(this);
-      var state = getInternalState$5(this);
+      var state = getInternalState$6(this);
       try {
         executor(bind$2(internalResolve$1, this, state), bind$2(internalReject$1, this, state));
       } catch (error) {
@@ -11496,7 +11722,7 @@
     };
     // eslint-disable-next-line no-unused-vars
     Internal$1 = function Promise(executor) {
-      setInternalState$7(this, {
+      setInternalState$8(this, {
         type: PROMISE$1,
         done: false,
         notified: false,
@@ -11529,7 +11755,7 @@
     });
     OwnPromiseCapability$1 = function () {
       var promise = new Internal$1();
-      var state = getInternalState$5(promise);
+      var state = getInternalState$6(promise);
       this.promise = promise;
       this.resolve = bind$2(internalResolve$1, promise, state);
       this.reject = bind$2(internalReject$1, promise, state);
@@ -11562,7 +11788,7 @@
     }
   }
 
-  _export$1({ global: true, wrap: true, forced: FORCED$8 }, {
+  _export$1({ global: true, wrap: true, forced: FORCED$9 }, {
     Promise: PromiseConstructor$1
   });
 
@@ -11572,7 +11798,7 @@
   PromiseWrapper$1 = getBuiltIn$1(PROMISE$1);
 
   // statics
-  _export$1({ target: PROMISE$1, stat: true, forced: FORCED$8 }, {
+  _export$1({ target: PROMISE$1, stat: true, forced: FORCED$9 }, {
     // `Promise.reject` method
     // https://tc39.github.io/ecma262/#sec-promise.reject
     reject: function reject(r) {
@@ -11582,7 +11808,7 @@
     }
   });
 
-  _export$1({ target: PROMISE$1, stat: true, forced: isPure$1 || FORCED$8 }, {
+  _export$1({ target: PROMISE$1, stat: true, forced: isPure$1 || FORCED$9 }, {
     // `Promise.resolve` method
     // https://tc39.github.io/ecma262/#sec-promise.resolve
     resolve: function resolve(x) {
@@ -11852,13 +12078,13 @@
 
 
   var STRING_ITERATOR$1 = 'String Iterator';
-  var setInternalState$8 = internalState$1.set;
-  var getInternalState$6 = internalState$1.getterFor(STRING_ITERATOR$1);
+  var setInternalState$9 = internalState$1.set;
+  var getInternalState$7 = internalState$1.getterFor(STRING_ITERATOR$1);
 
   // `String.prototype[@@iterator]` method
   // https://tc39.github.io/ecma262/#sec-string.prototype-@@iterator
   defineIterator$1(String, 'String', function (iterated) {
-    setInternalState$8(this, {
+    setInternalState$9(this, {
       type: STRING_ITERATOR$1,
       string: String(iterated),
       index: 0
@@ -11866,7 +12092,7 @@
   // `%StringIteratorPrototype%.next` method
   // https://tc39.github.io/ecma262/#sec-%stringiteratorprototype%.next
   }, function next() {
-    var state = getInternalState$6(this);
+    var state = getInternalState$7(this);
     var string = state.string;
     var index = state.index;
     var point;
@@ -12287,7 +12513,7 @@
   var slice$1 = [].slice;
   var MSIE = /MSIE .\./.test(engineUserAgent$1); // <- dirty ie9- check
 
-  var wrap$1 = function (scheduler) {
+  var wrap$2 = function (scheduler) {
     return function (handler, timeout /* , ...arguments */) {
       var boundArgs = arguments.length > 2;
       var args = boundArgs ? slice$1.call(arguments, 2) : undefined;
@@ -12303,10 +12529,10 @@
   _export$1({ global: true, bind: true, forced: MSIE }, {
     // `setTimeout` method
     // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
-    setTimeout: wrap$1(global_1$1.setTimeout),
+    setTimeout: wrap$2(global_1$1.setTimeout),
     // `setInterval` method
     // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
-    setInterval: wrap$1(global_1$1.setInterval)
+    setInterval: wrap$2(global_1$1.setInterval)
   });
 
   var ITERATOR$c = wellKnownSymbol$1('iterator');
@@ -12540,7 +12766,7 @@
   var ITERATOR$d = wellKnownSymbol$1('iterator');
   var URL_SEARCH_PARAMS = 'URLSearchParams';
   var URL_SEARCH_PARAMS_ITERATOR = URL_SEARCH_PARAMS + 'Iterator';
-  var setInternalState$9 = internalState$1.set;
+  var setInternalState$a = internalState$1.set;
   var getInternalParamsState = internalState$1.getterFor(URL_SEARCH_PARAMS);
   var getInternalIteratorState = internalState$1.getterFor(URL_SEARCH_PARAMS_ITERATOR);
 
@@ -12619,7 +12845,7 @@
   };
 
   var URLSearchParamsIterator = createIteratorConstructor$1(function Iterator(params, kind) {
-    setInternalState$9(this, {
+    setInternalState$a(this, {
       type: URL_SEARCH_PARAMS_ITERATOR,
       iterator: getIterator(getInternalParamsState(params).entries),
       kind: kind
@@ -12643,7 +12869,7 @@
     var entries = [];
     var iteratorMethod, iterator, next, step, entryIterator, entryNext, first, second, key;
 
-    setInternalState$9(that, {
+    setInternalState$a(that, {
       type: URL_SEARCH_PARAMS,
       entries: entries,
       updateURL: function () { /* empty */ },
@@ -12881,7 +13107,7 @@
   var NativeURL = global_1$1.URL;
   var URLSearchParams$1 = web_urlSearchParams.URLSearchParams;
   var getInternalSearchParamsState = web_urlSearchParams.getState;
-  var setInternalState$a = internalState$1.set;
+  var setInternalState$b = internalState$1.set;
   var getInternalURLState = internalState$1.getterFor('URL');
   var floor$6 = Math.floor;
   var pow$1 = Math.pow;
@@ -13598,7 +13824,7 @@
     var that = anInstance$1(this, URLConstructor, 'URL');
     var base = arguments.length > 1 ? arguments[1] : undefined;
     var urlString = String(url);
-    var state = setInternalState$a(that, { type: 'URL' });
+    var state = setInternalState$b(that, { type: 'URL' });
     var baseState, failure;
     if (base !== undefined) {
       if (base instanceof URLConstructor) baseState = getInternalURLState(base);
@@ -13867,323 +14093,6 @@
     URL: URLConstructor
   });
 
-  var nativeGetOwnPropertyNames$2 = objectGetOwnPropertyNames$1.f;
-
-  var toString$5 = {}.toString;
-
-  var windowNames$1 = typeof window == 'object' && window && Object.getOwnPropertyNames
-    ? Object.getOwnPropertyNames(window) : [];
-
-  var getWindowNames$1 = function (it) {
-    try {
-      return nativeGetOwnPropertyNames$2(it);
-    } catch (error) {
-      return windowNames$1.slice();
-    }
-  };
-
-  // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-  var f$e = function getOwnPropertyNames(it) {
-    return windowNames$1 && toString$5.call(it) == '[object Window]'
-      ? getWindowNames$1(it)
-      : nativeGetOwnPropertyNames$2(toIndexedObject$1(it));
-  };
-
-  var objectGetOwnPropertyNamesExternal$1 = {
-  	f: f$e
-  };
-
-  var f$f = wellKnownSymbol$1;
-
-  var wellKnownSymbolWrapped$1 = {
-  	f: f$f
-  };
-
-  var defineProperty$e = objectDefineProperty$1.f;
-
-  var defineWellKnownSymbol$1 = function (NAME) {
-    var Symbol = path$2.Symbol || (path$2.Symbol = {});
-    if (!has$3(Symbol, NAME)) defineProperty$e(Symbol, NAME, {
-      value: wellKnownSymbolWrapped$1.f(NAME)
-    });
-  };
-
-  var $forEach$3 = arrayIteration$1.forEach;
-
-  var HIDDEN$1 = sharedKey$1('hidden');
-  var SYMBOL$1 = 'Symbol';
-  var PROTOTYPE$3 = 'prototype';
-  var TO_PRIMITIVE$1 = wellKnownSymbol$1('toPrimitive');
-  var setInternalState$b = internalState$1.set;
-  var getInternalState$7 = internalState$1.getterFor(SYMBOL$1);
-  var ObjectPrototype$3 = Object[PROTOTYPE$3];
-  var $Symbol$1 = global_1$1.Symbol;
-  var $stringify$1 = getBuiltIn$1('JSON', 'stringify');
-  var nativeGetOwnPropertyDescriptor$3 = objectGetOwnPropertyDescriptor$1.f;
-  var nativeDefineProperty$3 = objectDefineProperty$1.f;
-  var nativeGetOwnPropertyNames$3 = objectGetOwnPropertyNamesExternal$1.f;
-  var nativePropertyIsEnumerable$3 = objectPropertyIsEnumerable$1.f;
-  var AllSymbols$1 = shared$1('symbols');
-  var ObjectPrototypeSymbols$1 = shared$1('op-symbols');
-  var StringToSymbolRegistry$1 = shared$1('string-to-symbol-registry');
-  var SymbolToStringRegistry$1 = shared$1('symbol-to-string-registry');
-  var WellKnownSymbolsStore$3 = shared$1('wks');
-  var QObject$1 = global_1$1.QObject;
-  // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
-  var USE_SETTER$1 = !QObject$1 || !QObject$1[PROTOTYPE$3] || !QObject$1[PROTOTYPE$3].findChild;
-
-  // fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
-  var setSymbolDescriptor$1 = descriptors$1 && fails$1(function () {
-    return objectCreate$1(nativeDefineProperty$3({}, 'a', {
-      get: function () { return nativeDefineProperty$3(this, 'a', { value: 7 }).a; }
-    })).a != 7;
-  }) ? function (O, P, Attributes) {
-    var ObjectPrototypeDescriptor = nativeGetOwnPropertyDescriptor$3(ObjectPrototype$3, P);
-    if (ObjectPrototypeDescriptor) delete ObjectPrototype$3[P];
-    nativeDefineProperty$3(O, P, Attributes);
-    if (ObjectPrototypeDescriptor && O !== ObjectPrototype$3) {
-      nativeDefineProperty$3(ObjectPrototype$3, P, ObjectPrototypeDescriptor);
-    }
-  } : nativeDefineProperty$3;
-
-  var wrap$2 = function (tag, description) {
-    var symbol = AllSymbols$1[tag] = objectCreate$1($Symbol$1[PROTOTYPE$3]);
-    setInternalState$b(symbol, {
-      type: SYMBOL$1,
-      tag: tag,
-      description: description
-    });
-    if (!descriptors$1) symbol.description = description;
-    return symbol;
-  };
-
-  var isSymbol$1 = useSymbolAsUid$1 ? function (it) {
-    return typeof it == 'symbol';
-  } : function (it) {
-    return Object(it) instanceof $Symbol$1;
-  };
-
-  var $defineProperty$1 = function defineProperty(O, P, Attributes) {
-    if (O === ObjectPrototype$3) $defineProperty$1(ObjectPrototypeSymbols$1, P, Attributes);
-    anObject$1(O);
-    var key = toPrimitive$1(P, true);
-    anObject$1(Attributes);
-    if (has$3(AllSymbols$1, key)) {
-      if (!Attributes.enumerable) {
-        if (!has$3(O, HIDDEN$1)) nativeDefineProperty$3(O, HIDDEN$1, createPropertyDescriptor$1(1, {}));
-        O[HIDDEN$1][key] = true;
-      } else {
-        if (has$3(O, HIDDEN$1) && O[HIDDEN$1][key]) O[HIDDEN$1][key] = false;
-        Attributes = objectCreate$1(Attributes, { enumerable: createPropertyDescriptor$1(0, false) });
-      } return setSymbolDescriptor$1(O, key, Attributes);
-    } return nativeDefineProperty$3(O, key, Attributes);
-  };
-
-  var $defineProperties$1 = function defineProperties(O, Properties) {
-    anObject$1(O);
-    var properties = toIndexedObject$1(Properties);
-    var keys = objectKeys$1(properties).concat($getOwnPropertySymbols$1(properties));
-    $forEach$3(keys, function (key) {
-      if (!descriptors$1 || $propertyIsEnumerable$1.call(properties, key)) $defineProperty$1(O, key, properties[key]);
-    });
-    return O;
-  };
-
-  var $create$1 = function create(O, Properties) {
-    return Properties === undefined ? objectCreate$1(O) : $defineProperties$1(objectCreate$1(O), Properties);
-  };
-
-  var $propertyIsEnumerable$1 = function propertyIsEnumerable(V) {
-    var P = toPrimitive$1(V, true);
-    var enumerable = nativePropertyIsEnumerable$3.call(this, P);
-    if (this === ObjectPrototype$3 && has$3(AllSymbols$1, P) && !has$3(ObjectPrototypeSymbols$1, P)) return false;
-    return enumerable || !has$3(this, P) || !has$3(AllSymbols$1, P) || has$3(this, HIDDEN$1) && this[HIDDEN$1][P] ? enumerable : true;
-  };
-
-  var $getOwnPropertyDescriptor$1 = function getOwnPropertyDescriptor(O, P) {
-    var it = toIndexedObject$1(O);
-    var key = toPrimitive$1(P, true);
-    if (it === ObjectPrototype$3 && has$3(AllSymbols$1, key) && !has$3(ObjectPrototypeSymbols$1, key)) return;
-    var descriptor = nativeGetOwnPropertyDescriptor$3(it, key);
-    if (descriptor && has$3(AllSymbols$1, key) && !(has$3(it, HIDDEN$1) && it[HIDDEN$1][key])) {
-      descriptor.enumerable = true;
-    }
-    return descriptor;
-  };
-
-  var $getOwnPropertyNames$1 = function getOwnPropertyNames(O) {
-    var names = nativeGetOwnPropertyNames$3(toIndexedObject$1(O));
-    var result = [];
-    $forEach$3(names, function (key) {
-      if (!has$3(AllSymbols$1, key) && !has$3(hiddenKeys$2, key)) result.push(key);
-    });
-    return result;
-  };
-
-  var $getOwnPropertySymbols$1 = function getOwnPropertySymbols(O) {
-    var IS_OBJECT_PROTOTYPE = O === ObjectPrototype$3;
-    var names = nativeGetOwnPropertyNames$3(IS_OBJECT_PROTOTYPE ? ObjectPrototypeSymbols$1 : toIndexedObject$1(O));
-    var result = [];
-    $forEach$3(names, function (key) {
-      if (has$3(AllSymbols$1, key) && (!IS_OBJECT_PROTOTYPE || has$3(ObjectPrototype$3, key))) {
-        result.push(AllSymbols$1[key]);
-      }
-    });
-    return result;
-  };
-
-  // `Symbol` constructor
-  // https://tc39.github.io/ecma262/#sec-symbol-constructor
-  if (!nativeSymbol$1) {
-    $Symbol$1 = function Symbol() {
-      if (this instanceof $Symbol$1) throw TypeError('Symbol is not a constructor');
-      var description = !arguments.length || arguments[0] === undefined ? undefined : String(arguments[0]);
-      var tag = uid$1(description);
-      var setter = function (value) {
-        if (this === ObjectPrototype$3) setter.call(ObjectPrototypeSymbols$1, value);
-        if (has$3(this, HIDDEN$1) && has$3(this[HIDDEN$1], tag)) this[HIDDEN$1][tag] = false;
-        setSymbolDescriptor$1(this, tag, createPropertyDescriptor$1(1, value));
-      };
-      if (descriptors$1 && USE_SETTER$1) setSymbolDescriptor$1(ObjectPrototype$3, tag, { configurable: true, set: setter });
-      return wrap$2(tag, description);
-    };
-
-    redefine$1($Symbol$1[PROTOTYPE$3], 'toString', function toString() {
-      return getInternalState$7(this).tag;
-    });
-
-    redefine$1($Symbol$1, 'withoutSetter', function (description) {
-      return wrap$2(uid$1(description), description);
-    });
-
-    objectPropertyIsEnumerable$1.f = $propertyIsEnumerable$1;
-    objectDefineProperty$1.f = $defineProperty$1;
-    objectGetOwnPropertyDescriptor$1.f = $getOwnPropertyDescriptor$1;
-    objectGetOwnPropertyNames$1.f = objectGetOwnPropertyNamesExternal$1.f = $getOwnPropertyNames$1;
-    objectGetOwnPropertySymbols$1.f = $getOwnPropertySymbols$1;
-
-    wellKnownSymbolWrapped$1.f = function (name) {
-      return wrap$2(wellKnownSymbol$1(name), name);
-    };
-
-    if (descriptors$1) {
-      // https://github.com/tc39/proposal-Symbol-description
-      nativeDefineProperty$3($Symbol$1[PROTOTYPE$3], 'description', {
-        configurable: true,
-        get: function description() {
-          return getInternalState$7(this).description;
-        }
-      });
-      {
-        redefine$1(ObjectPrototype$3, 'propertyIsEnumerable', $propertyIsEnumerable$1, { unsafe: true });
-      }
-    }
-  }
-
-  _export$1({ global: true, wrap: true, forced: !nativeSymbol$1, sham: !nativeSymbol$1 }, {
-    Symbol: $Symbol$1
-  });
-
-  $forEach$3(objectKeys$1(WellKnownSymbolsStore$3), function (name) {
-    defineWellKnownSymbol$1(name);
-  });
-
-  _export$1({ target: SYMBOL$1, stat: true, forced: !nativeSymbol$1 }, {
-    // `Symbol.for` method
-    // https://tc39.github.io/ecma262/#sec-symbol.for
-    'for': function (key) {
-      var string = String(key);
-      if (has$3(StringToSymbolRegistry$1, string)) return StringToSymbolRegistry$1[string];
-      var symbol = $Symbol$1(string);
-      StringToSymbolRegistry$1[string] = symbol;
-      SymbolToStringRegistry$1[symbol] = string;
-      return symbol;
-    },
-    // `Symbol.keyFor` method
-    // https://tc39.github.io/ecma262/#sec-symbol.keyfor
-    keyFor: function keyFor(sym) {
-      if (!isSymbol$1(sym)) throw TypeError(sym + ' is not a symbol');
-      if (has$3(SymbolToStringRegistry$1, sym)) return SymbolToStringRegistry$1[sym];
-    },
-    useSetter: function () { USE_SETTER$1 = true; },
-    useSimple: function () { USE_SETTER$1 = false; }
-  });
-
-  _export$1({ target: 'Object', stat: true, forced: !nativeSymbol$1, sham: !descriptors$1 }, {
-    // `Object.create` method
-    // https://tc39.github.io/ecma262/#sec-object.create
-    create: $create$1,
-    // `Object.defineProperty` method
-    // https://tc39.github.io/ecma262/#sec-object.defineproperty
-    defineProperty: $defineProperty$1,
-    // `Object.defineProperties` method
-    // https://tc39.github.io/ecma262/#sec-object.defineproperties
-    defineProperties: $defineProperties$1,
-    // `Object.getOwnPropertyDescriptor` method
-    // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptors
-    getOwnPropertyDescriptor: $getOwnPropertyDescriptor$1
-  });
-
-  _export$1({ target: 'Object', stat: true, forced: !nativeSymbol$1 }, {
-    // `Object.getOwnPropertyNames` method
-    // https://tc39.github.io/ecma262/#sec-object.getownpropertynames
-    getOwnPropertyNames: $getOwnPropertyNames$1,
-    // `Object.getOwnPropertySymbols` method
-    // https://tc39.github.io/ecma262/#sec-object.getownpropertysymbols
-    getOwnPropertySymbols: $getOwnPropertySymbols$1
-  });
-
-  // Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
-  // https://bugs.chromium.org/p/v8/issues/detail?id=3443
-  _export$1({ target: 'Object', stat: true, forced: fails$1(function () { objectGetOwnPropertySymbols$1.f(1); }) }, {
-    getOwnPropertySymbols: function getOwnPropertySymbols(it) {
-      return objectGetOwnPropertySymbols$1.f(toObject$1(it));
-    }
-  });
-
-  // `JSON.stringify` method behavior with symbols
-  // https://tc39.github.io/ecma262/#sec-json.stringify
-  if ($stringify$1) {
-    var FORCED_JSON_STRINGIFY$1 = !nativeSymbol$1 || fails$1(function () {
-      var symbol = $Symbol$1();
-      // MS Edge converts symbol values to JSON as {}
-      return $stringify$1([symbol]) != '[null]'
-        // WebKit converts symbol values to JSON as null
-        || $stringify$1({ a: symbol }) != '{}'
-        // V8 throws on boxed symbols
-        || $stringify$1(Object(symbol)) != '{}';
-    });
-
-    _export$1({ target: 'JSON', stat: true, forced: FORCED_JSON_STRINGIFY$1 }, {
-      // eslint-disable-next-line no-unused-vars
-      stringify: function stringify(it, replacer, space) {
-        var args = [it];
-        var index = 1;
-        var $replacer;
-        while (arguments.length > index) args.push(arguments[index++]);
-        $replacer = replacer;
-        if (!isObject$1(replacer) && it === undefined || isSymbol$1(it)) return; // IE8 returns string on undefined
-        if (!isArray$1(replacer)) replacer = function (key, value) {
-          if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
-          if (!isSymbol$1(value)) return value;
-        };
-        args[1] = replacer;
-        return $stringify$1.apply(null, args);
-      }
-    });
-  }
-
-  // `Symbol.prototype[@@toPrimitive]` method
-  // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@toprimitive
-  if (!$Symbol$1[PROTOTYPE$3][TO_PRIMITIVE$1]) {
-    createNonEnumerableProperty$1($Symbol$1[PROTOTYPE$3], TO_PRIMITIVE$1, $Symbol$1[PROTOTYPE$3].valueOf);
-  }
-  // `Symbol.prototype[@@toStringTag]` property
-  // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@tostringtag
-  setToStringTag$1($Symbol$1, SYMBOL$1);
-
-  hiddenKeys$2[HIDDEN$1] = true;
-
   var defineProperty$f = objectDefineProperty$1.f;
 
 
@@ -14306,11 +14215,11 @@
     create: objectCreate$1
   });
 
-  var FAILS_ON_PRIMITIVES$3 = fails$1(function () { objectGetPrototypeOf$1(1); });
+  var FAILS_ON_PRIMITIVES$4 = fails$1(function () { objectGetPrototypeOf$1(1); });
 
   // `Object.getPrototypeOf` method
   // https://tc39.github.io/ecma262/#sec-object.getprototypeof
-  _export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$3, sham: !correctPrototypeGetter$1 }, {
+  _export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$4, sham: !correctPrototypeGetter$1 }, {
     getPrototypeOf: function getPrototypeOf(it) {
       return objectGetPrototypeOf$1(toObject$1(it));
     }
@@ -15070,20 +14979,6 @@
 
   var asyncToGenerator = _asyncToGenerator$1;
 
-  var nativeGetOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor$1.f;
-
-
-  var FAILS_ON_PRIMITIVES$4 = fails$1(function () { nativeGetOwnPropertyDescriptor$4(1); });
-  var FORCED$9 = !descriptors$1 || FAILS_ON_PRIMITIVES$4;
-
-  // `Object.getOwnPropertyDescriptor` method
-  // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptor
-  _export$1({ target: 'Object', stat: true, forced: FORCED$9, sham: !descriptors$1 }, {
-    getOwnPropertyDescriptor: function getOwnPropertyDescriptor(it, key) {
-      return nativeGetOwnPropertyDescriptor$4(toIndexedObject$1(it), key);
-    }
-  });
-
   function _defineProperty$1(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
@@ -15100,27 +14995,6 @@
   }
 
   var defineProperty$g = _defineProperty$1;
-
-  function _objectSpread$1(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? Object(arguments[i]) : {};
-      var ownKeys = Object.keys(source);
-
-      if (typeof Object.getOwnPropertySymbols === 'function') {
-        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-        }));
-      }
-
-      ownKeys.forEach(function (key) {
-        defineProperty$g(target, key, source[key]);
-      });
-    }
-
-    return target;
-  }
-
-  var objectSpread = _objectSpread$1;
 
   var _typeof_1 = createCommonjsModule(function (module) {
     function _typeof(obj) {
@@ -16468,7 +16342,7 @@
 
   var v4_1 = v4;
 
-  function _arrayLikeToArray(arr, len) {
+  function _arrayLikeToArray$1(arr, len) {
     if (len == null || len > arr.length) len = arr.length;
 
     for (var i = 0, arr2 = new Array(len); i < len; i++) {
@@ -16478,7 +16352,7 @@
     return arr2;
   }
 
-  var arrayLikeToArray = _arrayLikeToArray;
+  var arrayLikeToArray = _arrayLikeToArray$1;
 
   function _arrayWithoutHoles$1(arr) {
     if (Array.isArray(arr)) return arrayLikeToArray(arr);
@@ -16492,16 +16366,16 @@
 
   var iterableToArray = _iterableToArray$1;
 
-  function _unsupportedIterableToArray(o, minLen) {
+  function _unsupportedIterableToArray$1(o, minLen) {
     if (!o) return;
     if (typeof o === "string") return arrayLikeToArray(o, minLen);
     var n = Object.prototype.toString.call(o).slice(8, -1);
     if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Map" || n === "Set") return Array.from(n);
     if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
   }
 
-  var unsupportedIterableToArray = _unsupportedIterableToArray;
+  var unsupportedIterableToArray = _unsupportedIterableToArray$1;
 
   function _nonIterableSpread$1() {
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
@@ -16761,9 +16635,7 @@
    *      R.add(7)(10);      //=> 17
    */
 
-  var add$1 =
-  /*#__PURE__*/
-  _curry2$1(function add(a, b) {
+  var add$1 = /*#__PURE__*/_curry2$1(function add(a, b) {
     return Number(a) + Number(b);
   });
 
@@ -16949,9 +16821,7 @@
    *      g(4); //=> 10
    */
 
-  var curryN$1 =
-  /*#__PURE__*/
-  _curry2$1(function curryN(length, fn) {
+  var curryN$1 = /*#__PURE__*/_curry2$1(function curryN(length, fn) {
     if (length === 1) {
       return _curry1$1(fn);
     }
@@ -16984,9 +16854,7 @@
    *      //=> ['0-f', '1-o', '2-o', '3-b', '4-a', '5-r']
    */
 
-  var addIndex$1 =
-  /*#__PURE__*/
-  _curry1$1(function addIndex(fn) {
+  var addIndex$1 = /*#__PURE__*/_curry1$1(function addIndex(fn) {
     return curryN$1(fn.length, function () {
       var idx = 0;
       var origFn = arguments[0];
@@ -17076,9 +16944,7 @@
    * @symb R.adjust(0, f, [a, b]) = [f(a), b]
    */
 
-  var adjust$1 =
-  /*#__PURE__*/
-  _curry3$1(function adjust(idx, fn, list) {
+  var adjust$1 = /*#__PURE__*/_curry3$1(function adjust(idx, fn, list) {
     if (idx >= list.length || idx < -list.length) {
       return list;
     }
@@ -17174,9 +17040,7 @@
     }
   };
 
-  var XAll$1 =
-  /*#__PURE__*/
-  function () {
+  var XAll$1 = /*#__PURE__*/function () {
     function XAll(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -17205,9 +17069,7 @@
     return XAll;
   }();
 
-  var _xall$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xall(f, xf) {
+  var _xall$1 = /*#__PURE__*/_curry2$1(function _xall(f, xf) {
     return new XAll$1(f, xf);
   });
 
@@ -17236,11 +17098,7 @@
    *      R.all(equals3)([3, 3, 1, 3]); //=> false
    */
 
-  var all$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['all'], _xall$1, function all(fn, list) {
+  var all$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['all'], _xall$1, function all(fn, list) {
     var idx = 0;
 
     while (idx < list.length) {
@@ -17272,9 +17130,7 @@
    *      R.max('a', 'b'); //=> 'b'
    */
 
-  var max$7 =
-  /*#__PURE__*/
-  _curry2$1(function max(a, b) {
+  var max$7 = /*#__PURE__*/_curry2$1(function max(a, b) {
     return b > a ? b : a;
   });
 
@@ -17313,9 +17169,7 @@
    *      _isArrayLike({0: 'zero', 9: 'nine', length: 10}); //=> true
    */
 
-  var _isArrayLike$1 =
-  /*#__PURE__*/
-  _curry1$1(function isArrayLike(x) {
+  var _isArrayLike$1 = /*#__PURE__*/_curry1$1(function isArrayLike(x) {
     if (_isArray$1(x)) {
       return true;
     }
@@ -17347,9 +17201,7 @@
     return false;
   });
 
-  var XWrap$1 =
-  /*#__PURE__*/
-  function () {
+  var XWrap$1 = /*#__PURE__*/function () {
     function XWrap(fn) {
       this.f = fn;
     }
@@ -17396,9 +17248,7 @@
    * @symb R.bind(f, o)(a, b) = f.call(o, a, b)
    */
 
-  var bind$3 =
-  /*#__PURE__*/
-  _curry2$1(function bind(fn, thisObj) {
+  var bind$3 = /*#__PURE__*/_curry2$1(function bind(fn, thisObj) {
     return _arity$1(fn.length, function () {
       return fn.apply(thisObj, arguments);
     });
@@ -17472,9 +17322,7 @@
     throw new TypeError('reduce: list must be array or iterable');
   }
 
-  var XMap$1 =
-  /*#__PURE__*/
-  function () {
+  var XMap$1 = /*#__PURE__*/function () {
     function XMap(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -17490,9 +17338,7 @@
     return XMap;
   }();
 
-  var _xmap$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xmap(f, xf) {
+  var _xmap$1 = /*#__PURE__*/_curry2$1(function _xmap(f, xf) {
     return new XMap$1(f, xf);
   });
 
@@ -17502,9 +17348,7 @@
 
   var toString$6 = Object.prototype.toString;
 
-  var _isArguments$1 =
-  /*#__PURE__*/
-  function () {
+  var _isArguments$1 = /*#__PURE__*/function () {
     return toString$6.call(arguments) === '[object Arguments]' ? function _isArguments(x) {
       return toString$6.call(x) === '[object Arguments]';
     } : function _isArguments(x) {
@@ -17512,16 +17356,12 @@
     };
   }();
 
-  var hasEnumBug$1 = !
-  /*#__PURE__*/
-  {
+  var hasEnumBug$1 = ! /*#__PURE__*/{
     toString: null
   }.propertyIsEnumerable('toString');
   var nonEnumerableProps$1 = ['constructor', 'valueOf', 'isPrototypeOf', 'toString', 'propertyIsEnumerable', 'hasOwnProperty', 'toLocaleString']; // Safari bug
 
-  var hasArgsEnumBug$1 =
-  /*#__PURE__*/
-  function () {
+  var hasArgsEnumBug$1 = /*#__PURE__*/function () {
 
     return arguments.propertyIsEnumerable('length');
   }();
@@ -17559,13 +17399,9 @@
    */
 
 
-  var keys$7 = typeof Object.keys === 'function' && !hasArgsEnumBug$1 ?
-  /*#__PURE__*/
-  _curry1$1(function keys(obj) {
+  var keys$7 = typeof Object.keys === 'function' && !hasArgsEnumBug$1 ? /*#__PURE__*/_curry1$1(function keys(obj) {
     return Object(obj) !== obj ? [] : Object.keys(obj);
-  }) :
-  /*#__PURE__*/
-  _curry1$1(function keys(obj) {
+  }) : /*#__PURE__*/_curry1$1(function keys(obj) {
     if (Object(obj) !== obj) {
       return [];
     }
@@ -17634,11 +17470,7 @@
    * @symb R.map(f, functor_o) = functor_o.map(f)
    */
 
-  var map$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['fantasy-land/map', 'map'], _xmap$1, function map(fn, functor) {
+  var map$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['fantasy-land/map', 'map'], _xmap$1, function map(fn, functor) {
     switch (Object.prototype.toString.call(functor)) {
       case '[object Function]':
         return curryN$1(functor.length, function () {
@@ -17709,9 +17541,7 @@
    * @symb R.nth(1, [a, b, c]) = b
    */
 
-  var nth$1 =
-  /*#__PURE__*/
-  _curry2$1(function nth(offset, list) {
+  var nth$1 = /*#__PURE__*/_curry2$1(function nth(offset, list) {
     var idx = offset < 0 ? list.length + offset : offset;
     return _isString$1(list) ? list.charAt(idx) : list[idx];
   });
@@ -17735,9 +17565,7 @@
    *      R.paths([['a', 'b'], ['p', 'r']], {a: {b: 2}, p: [{q: 3}]}); //=> [2, undefined]
    */
 
-  var paths$1 =
-  /*#__PURE__*/
-  _curry2$1(function paths(pathsArray, obj) {
+  var paths$1 = /*#__PURE__*/_curry2$1(function paths(pathsArray, obj) {
     return pathsArray.map(function (paths) {
       var val = obj;
       var idx = 0;
@@ -17778,9 +17606,7 @@
    *      R.path(['a', 'b', -2], {a: {b: [1, 2, 3]}}); //=> 2
    */
 
-  var path$3 =
-  /*#__PURE__*/
-  _curry2$1(function path(pathAr, obj) {
+  var path$3 = /*#__PURE__*/_curry2$1(function path(pathAr, obj) {
     return paths$1([pathAr], obj)[0];
   });
 
@@ -17806,9 +17632,7 @@
    *      R.compose(R.inc, R.prop('x'))({ x: 3 }) //=> 4
    */
 
-  var prop$1 =
-  /*#__PURE__*/
-  _curry2$1(function prop(p, obj) {
+  var prop$1 = /*#__PURE__*/_curry2$1(function prop(p, obj) {
     return path$3([p], obj);
   });
 
@@ -17840,9 +17664,7 @@
    * @symb R.pluck(0, [[1, 2], [3, 4], [5, 6]]) = [1, 3, 5]
    */
 
-  var pluck$1 =
-  /*#__PURE__*/
-  _curry2$1(function pluck(p, list) {
+  var pluck$1 = /*#__PURE__*/_curry2$1(function pluck(p, list) {
     return map$1(prop$1(p), list);
   });
 
@@ -17893,9 +17715,7 @@
    * @symb R.reduce(f, a, [b, c, d]) = f(f(f(a, b), c), d)
    */
 
-  var reduce$1 =
-  /*#__PURE__*/
-  _curry3$1(_reduce$1);
+  var reduce$1 = /*#__PURE__*/_curry3$1(_reduce$1);
 
   /**
    * Takes a list of predicates and returns a predicate that returns true for a
@@ -17923,9 +17743,7 @@
    *      isQueenOfSpades({rank: 'Q', suit: '♠︎'}); //=> true
    */
 
-  var allPass$1 =
-  /*#__PURE__*/
-  _curry1$1(function allPass(preds) {
+  var allPass$1 = /*#__PURE__*/_curry1$1(function allPass(preds) {
     return curryN$1(reduce$1(max$7, 0, pluck$1('length', preds)), function () {
       var idx = 0;
       var len = preds.length;
@@ -17962,9 +17780,7 @@
    *      t(); //=> 'Tee'
    */
 
-  var always$1 =
-  /*#__PURE__*/
-  _curry1$1(function always(val) {
+  var always$1 = /*#__PURE__*/_curry1$1(function always(val) {
     return function () {
       return val;
     };
@@ -17990,15 +17806,11 @@
    *      R.and(false, false); //=> false
    */
 
-  var and$1 =
-  /*#__PURE__*/
-  _curry2$1(function and(a, b) {
+  var and$1 = /*#__PURE__*/_curry2$1(function and(a, b) {
     return a && b;
   });
 
-  var XAny$1 =
-  /*#__PURE__*/
-  function () {
+  var XAny$1 = /*#__PURE__*/function () {
     function XAny(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -18027,9 +17839,7 @@
     return XAny;
   }();
 
-  var _xany$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xany(f, xf) {
+  var _xany$1 = /*#__PURE__*/_curry2$1(function _xany(f, xf) {
     return new XAny$1(f, xf);
   });
 
@@ -18059,11 +17869,7 @@
    *      R.any(lessThan2)([1, 2]); //=> true
    */
 
-  var any$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['any'], _xany$1, function any(fn, list) {
+  var any$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['any'], _xany$1, function any(fn, list) {
     var idx = 0;
 
     while (idx < list.length) {
@@ -18104,9 +17910,7 @@
    *      isBlackCard({rank: 'Q', suit: '♦'}); //=> false
    */
 
-  var anyPass$1 =
-  /*#__PURE__*/
-  _curry1$1(function anyPass(preds) {
+  var anyPass$1 = /*#__PURE__*/_curry1$1(function anyPass(preds) {
     return curryN$1(reduce$1(max$7, 0, pluck$1('length', preds)), function () {
       var idx = 0;
       var len = preds.length;
@@ -18150,9 +17954,7 @@
    * @symb R.ap([f, g], [a, b]) = [f(a), f(b), g(a), g(b)]
    */
 
-  var ap$1 =
-  /*#__PURE__*/
-  _curry2$1(function ap(applyF, applyX) {
+  var ap$1 = /*#__PURE__*/_curry2$1(function ap(applyF, applyX) {
     return typeof applyX['fantasy-land/ap'] === 'function' ? applyX['fantasy-land/ap'](applyF) : typeof applyF.ap === 'function' ? applyF.ap(applyX) : typeof applyF === 'function' ? function (x) {
       return applyF(x)(applyX(x));
     } : _reduce$1(function (acc, f) {
@@ -18173,9 +17975,7 @@
     return acc;
   }
 
-  var XAperture$1 =
-  /*#__PURE__*/
-  function () {
+  var XAperture$1 = /*#__PURE__*/function () {
     function XAperture(n, xf) {
       this.xf = xf;
       this.pos = 0;
@@ -18212,9 +18012,7 @@
     return XAperture;
   }();
 
-  var _xaperture$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xaperture(n, xf) {
+  var _xaperture$1 = /*#__PURE__*/_curry2$1(function _xaperture(n, xf) {
     return new XAperture$1(n, xf);
   });
 
@@ -18240,11 +18038,7 @@
    *      R.aperture(7, [1, 2, 3, 4, 5]); //=> []
    */
 
-  var aperture$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xaperture$1, _aperture$1));
+  var aperture$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xaperture$1, _aperture$1));
 
   /**
    * Returns a new list containing the contents of the given list, followed by
@@ -18267,9 +18061,7 @@
    *      R.append(['tests'], ['write', 'more']); //=> ['write', 'more', ['tests']]
    */
 
-  var append$1 =
-  /*#__PURE__*/
-  _curry2$1(function append(el, list) {
+  var append$1 = /*#__PURE__*/_curry2$1(function append(el, list) {
     return _concat$1(list, [el]);
   });
 
@@ -18294,9 +18086,7 @@
    * @symb R.apply(f, [a, b, c]) = f(a, b, c)
    */
 
-  var apply$1 =
-  /*#__PURE__*/
-  _curry2$1(function apply(fn, args) {
+  var apply$1 = /*#__PURE__*/_curry2$1(function apply(fn, args) {
     return fn.apply(this, args);
   });
 
@@ -18318,9 +18108,7 @@
    *      R.values({a: 1, b: 2, c: 3}); //=> [1, 2, 3]
    */
 
-  var values$1 =
-  /*#__PURE__*/
-  _curry1$1(function values(obj) {
+  var values$1 = /*#__PURE__*/_curry1$1(function values(obj) {
     var props = keys$7(obj);
     var len = props.length;
     var vals = [];
@@ -18369,9 +18157,7 @@
    */
 
 
-  var applySpec$1 =
-  /*#__PURE__*/
-  _curry1$1(function applySpec(spec) {
+  var applySpec$1 = /*#__PURE__*/_curry1$1(function applySpec(spec) {
     spec = mapValues$1(function (v) {
       return typeof v == 'function' ? v : applySpec(v);
     }, spec);
@@ -18403,9 +18189,7 @@
    *      t42(R.add(1)); //=> 43
    */
 
-  var applyTo$1 =
-  /*#__PURE__*/
-  _curry2$1(function applyTo(x, f) {
+  var applyTo$1 = /*#__PURE__*/_curry2$1(function applyTo(x, f) {
     return f(x);
   });
 
@@ -18435,9 +18219,7 @@
    *        //=> [{ name: 'Mikhail', age: 62 },{ name: 'Emma', age: 70 }, { name: 'Peter', age: 78 }]
    */
 
-  var ascend$1 =
-  /*#__PURE__*/
-  _curry3$1(function ascend(fn, a, b) {
+  var ascend$1 = /*#__PURE__*/_curry3$1(function ascend(fn, a, b) {
     var aa = fn(a);
     var bb = fn(b);
     return aa < bb ? -1 : aa > bb ? 1 : 0;
@@ -18464,9 +18246,7 @@
    *      R.assoc('c', 3, {a: 1, b: 2}); //=> {a: 1, b: 2, c: 3}
    */
 
-  var assoc$1 =
-  /*#__PURE__*/
-  _curry3$1(function assoc(prop, val, obj) {
+  var assoc$1 = /*#__PURE__*/_curry3$1(function assoc(prop, val, obj) {
     var result = {};
 
     for (var p in obj) {
@@ -18495,9 +18275,7 @@
    *      R.isNil([]); //=> false
    */
 
-  var isNil$1 =
-  /*#__PURE__*/
-  _curry1$1(function isNil(x) {
+  var isNil$1 = /*#__PURE__*/_curry1$1(function isNil(x) {
     return x == null;
   });
 
@@ -18526,9 +18304,7 @@
    *      R.assocPath(['a', 'b', 'c'], 42, {a: 5}); //=> {a: {b: {c: 42}}}
    */
 
-  var assocPath$1 =
-  /*#__PURE__*/
-  _curry3$1(function assocPath(path, val, obj) {
+  var assocPath$1 = /*#__PURE__*/_curry3$1(function assocPath(path, val, obj) {
     if (path.length === 0) {
       return val;
     }
@@ -18580,9 +18356,7 @@
    * @symb R.nAry(2, f)(a, b) = f(a, b)
    */
 
-  var nAry$1 =
-  /*#__PURE__*/
-  _curry2$1(function nAry(n, fn) {
+  var nAry$1 = /*#__PURE__*/_curry2$1(function nAry(n, fn) {
     switch (n) {
       case 0:
         return function () {
@@ -18673,9 +18447,7 @@
    * @symb R.binary(f)(a, b, c) = f(a, b)
    */
 
-  var binary$1 =
-  /*#__PURE__*/
-  _curry1$1(function binary(fn) {
+  var binary$1 = /*#__PURE__*/_curry1$1(function binary(fn) {
     return nAry$1(2, fn);
   });
 
@@ -18702,9 +18474,7 @@
    *      madd3([1,2,3], [1,2,3], [1]); //=> [3, 4, 5, 4, 5, 6, 5, 6, 7]
    */
 
-  var liftN$1 =
-  /*#__PURE__*/
-  _curry2$1(function liftN(arity, fn) {
+  var liftN$1 = /*#__PURE__*/_curry2$1(function liftN(arity, fn) {
     var lifted = curryN$1(arity, fn);
     return curryN$1(arity, function () {
       return _reduce$1(ap$1, map$1(lifted, arguments[0]), Array.prototype.slice.call(arguments, 1));
@@ -18734,9 +18504,7 @@
    *      madd5([1,2], [3], [4, 5], [6], [7, 8]); //=> [21, 22, 22, 23, 22, 23, 23, 24]
    */
 
-  var lift$1 =
-  /*#__PURE__*/
-  _curry1$1(function lift(fn) {
+  var lift$1 = /*#__PURE__*/_curry1$1(function lift(fn) {
     return liftN$1(fn.length, fn);
   });
 
@@ -18772,9 +18540,7 @@
    *      R.both([false, false, 'a'], [11]); //=> [false, false, 11]
    */
 
-  var both$1 =
-  /*#__PURE__*/
-  _curry2$1(function both(f, g) {
+  var both$1 = /*#__PURE__*/_curry2$1(function both(f, g) {
     return _isFunction$1(f) ? function _both() {
       return f.apply(this, arguments) && g.apply(this, arguments);
     } : lift$1(and$1)(f, g);
@@ -18822,9 +18588,7 @@
    *      g(4); //=> 10
    */
 
-  var curry$1 =
-  /*#__PURE__*/
-  _curry1$1(function curry(fn) {
+  var curry$1 = /*#__PURE__*/_curry1$1(function curry(fn) {
     return curryN$1(fn.length, fn);
   });
 
@@ -18861,9 +18625,7 @@
    * @symb R.call(f, a, b) = f(a, b)
    */
 
-  var call$1 =
-  /*#__PURE__*/
-  curry$1(function call(fn) {
+  var call$1 = /*#__PURE__*/curry$1(function call(fn) {
     return fn.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
@@ -18935,9 +18697,7 @@
     };
   };
 
-  var _xchain$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xchain(f, xf) {
+  var _xchain$1 = /*#__PURE__*/_curry2$1(function _xchain(f, xf) {
     return map$1(f, _flatCat$1(xf));
   });
 
@@ -18968,11 +18728,7 @@
    *      R.chain(R.append, R.head)([1, 2, 3]); //=> [1, 2, 3, 1]
    */
 
-  var chain$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['fantasy-land/chain', 'chain'], _xchain$1, function chain(fn, monad) {
+  var chain$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['fantasy-land/chain', 'chain'], _xchain$1, function chain(fn, monad) {
     if (typeof monad === 'function') {
       return function (x) {
         return fn(monad(x))(x);
@@ -19003,9 +18759,7 @@
    *      R.clamp(1, 10, 4)  // => 4
    */
 
-  var clamp$1 =
-  /*#__PURE__*/
-  _curry3$1(function clamp(min, max, value) {
+  var clamp$1 = /*#__PURE__*/_curry3$1(function clamp(min, max, value) {
     if (min > max) {
       throw new Error('min must not be greater than max in clamp(min, max, value)');
     }
@@ -19124,9 +18878,7 @@
    *      R.type(undefined); //=> "Undefined"
    */
 
-  var type$1 =
-  /*#__PURE__*/
-  _curry1$1(function type(val) {
+  var type$1 = /*#__PURE__*/_curry1$1(function type(val) {
     return val === null ? 'Null' : val === undefined ? 'Undefined' : Object.prototype.toString.call(val).slice(8, -1);
   });
 
@@ -19204,9 +18956,7 @@
    *      objects[0] === objectsClone[0]; //=> false
    */
 
-  var clone$1 =
-  /*#__PURE__*/
-  _curry1$1(function clone(value) {
+  var clone$1 = /*#__PURE__*/_curry1$1(function clone(value) {
     return value != null && typeof value.clone === 'function' ? value.clone() : _clone$1(value, [], [], true);
   });
 
@@ -19234,9 +18984,7 @@
    *        //=> [{ name: 'Mikhail', age: 62 },{ name: 'Emma', age: 70 }, { name: 'Peter', age: 78 }]
    */
 
-  var comparator$1 =
-  /*#__PURE__*/
-  _curry1$1(function comparator(pred) {
+  var comparator$1 = /*#__PURE__*/_curry1$1(function comparator(pred) {
     return function (a, b) {
       return pred(a, b) ? -1 : pred(b, a) ? 1 : 0;
     };
@@ -19262,9 +19010,7 @@
    *      R.not(1); //=> false
    */
 
-  var not$1 =
-  /*#__PURE__*/
-  _curry1$1(function not(a) {
+  var not$1 = /*#__PURE__*/_curry1$1(function not(a) {
     return !a;
   });
 
@@ -19291,9 +19037,7 @@
    *      isNotNil(7); //=> true
    */
 
-  var complement$1 =
-  /*#__PURE__*/
-  lift$1(not$1);
+  var complement$1 = /*#__PURE__*/lift$1(not$1);
 
   function _pipe$1(f, g) {
     return function () {
@@ -19350,11 +19094,7 @@
    *      R.slice(0, 3, 'ramda');                     //=> 'ram'
    */
 
-  var slice$3 =
-  /*#__PURE__*/
-  _curry3$1(
-  /*#__PURE__*/
-  _checkForMethod$1('slice', function slice(fromIndex, toIndex, list) {
+  var slice$3 = /*#__PURE__*/_curry3$1( /*#__PURE__*/_checkForMethod$1('slice', function slice(fromIndex, toIndex, list) {
     return Array.prototype.slice.call(list, fromIndex, toIndex);
   }));
 
@@ -19386,13 +19126,7 @@
    *      R.tail('');     //=> ''
    */
 
-  var tail$1 =
-  /*#__PURE__*/
-  _curry1$1(
-  /*#__PURE__*/
-  _checkForMethod$1('tail',
-  /*#__PURE__*/
-  slice$3(1, Infinity)));
+  var tail$1 = /*#__PURE__*/_curry1$1( /*#__PURE__*/_checkForMethod$1('tail', /*#__PURE__*/slice$3(1, Infinity)));
 
   /**
    * Performs left-to-right function composition. The first argument may have
@@ -19451,9 +19185,7 @@
    *      R.reverse('');         //=> ''
    */
 
-  var reverse$1 =
-  /*#__PURE__*/
-  _curry1$1(function reverse(list) {
+  var reverse$1 = /*#__PURE__*/_curry1$1(function reverse(list) {
     return _isString$1(list) ? list.split('').reverse().join('') : Array.prototype.slice.call(list, 0).reverse();
   });
 
@@ -19635,9 +19367,7 @@
    *      R.head(''); //=> ''
    */
 
-  var head$3 =
-  /*#__PURE__*/
-  nth$1(0);
+  var head$3 = /*#__PURE__*/nth$1(0);
 
   function _identity$1(x) {
     return x;
@@ -19663,9 +19393,7 @@
    * @symb R.identity(a) = a
    */
 
-  var identity$1 =
-  /*#__PURE__*/
-  _curry1$1(_identity$1);
+  var identity$1 = /*#__PURE__*/_curry1$1(_identity$1);
 
   /**
    * Performs left-to-right function composition using transforming function. The first argument may have
@@ -19691,9 +19419,7 @@
    * @symb R.pipeWith(f)([g, h, i])(...args) = f(i, f(h, g(...args)))
    */
 
-  var pipeWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function pipeWith(xf, list) {
+  var pipeWith$1 = /*#__PURE__*/_curry2$1(function pipeWith(xf, list) {
     if (list.length <= 0) {
       return identity$1;
     }
@@ -19732,9 +19458,7 @@
    * @symb R.composeWith(f)([g, h, i])(...args) = f(g, f(h, i(...args)))
    */
 
-  var composeWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function composeWith(xf, list) {
+  var composeWith$1 = /*#__PURE__*/_curry2$1(function composeWith(xf, list) {
     return pipeWith$1.apply(this, [xf, reverse$1(list)]);
   });
 
@@ -20010,9 +19734,7 @@
    *      R.equals(a, b); //=> true
    */
 
-  var equals$1 =
-  /*#__PURE__*/
-  _curry2$1(function equals(a, b) {
+  var equals$1 = /*#__PURE__*/_curry2$1(function equals(a, b) {
     return _equals$1(a, b, [], []);
   });
 
@@ -20467,9 +20189,7 @@
     return Object.prototype.toString.call(x) === '[object Object]';
   }
 
-  var XFilter$1 =
-  /*#__PURE__*/
-  function () {
+  var XFilter$1 = /*#__PURE__*/function () {
     function XFilter(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -20485,9 +20205,7 @@
     return XFilter;
   }();
 
-  var _xfilter$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xfilter(f, xf) {
+  var _xfilter$1 = /*#__PURE__*/_curry2$1(function _xfilter(f, xf) {
     return new XFilter$1(f, xf);
   });
 
@@ -20519,11 +20237,7 @@
    *      R.filter(isEven, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
    */
 
-  var filter$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['filter'], _xfilter$1, function (pred, filterable) {
+  var filter$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['filter'], _xfilter$1, function (pred, filterable) {
     return _isObject$1(filterable) ? _reduce$1(function (acc, key) {
       if (pred(filterable[key])) {
         acc[key] = filterable[key];
@@ -20559,9 +20273,7 @@
    *      R.reject(isOdd, {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, d: 4}
    */
 
-  var reject$1 =
-  /*#__PURE__*/
-  _curry2$1(function reject(pred, filterable) {
+  var reject$1 = /*#__PURE__*/_curry2$1(function reject(pred, filterable) {
     return filter$1(_complement$1(pred), filterable);
   });
 
@@ -20655,9 +20367,7 @@
    *      R.toString(new Date('2001-02-03T04:05:06Z')); //=> 'new Date("2001-02-03T04:05:06.000Z")'
    */
 
-  var toString$7 =
-  /*#__PURE__*/
-  _curry1$1(function toString(val) {
+  var toString$7 = /*#__PURE__*/_curry1$1(function toString(val) {
     return _toString$1(val, []);
   });
 
@@ -20690,9 +20400,7 @@
    *      R.concat([], []); //=> []
    */
 
-  var concat$1 =
-  /*#__PURE__*/
-  _curry2$1(function concat(a, b) {
+  var concat$1 = /*#__PURE__*/_curry2$1(function concat(a, b) {
     if (_isArray$1(a)) {
       if (_isArray$1(b)) {
         return a.concat(b);
@@ -20748,9 +20456,7 @@
    *      fn(100); //=> 'water boils at 100°C'
    */
 
-  var cond$1 =
-  /*#__PURE__*/
-  _curry1$1(function cond(pairs) {
+  var cond$1 = /*#__PURE__*/_curry1$1(function cond(pairs) {
     var arity = reduce$1(max$7, 0, map$1(function (pair) {
       return pair[0].length;
     }, pairs));
@@ -20803,9 +20509,7 @@
    *      // Add a dollop of Ketchup
    */
 
-  var constructN$1 =
-  /*#__PURE__*/
-  _curry2$1(function constructN(n, Fn) {
+  var constructN$1 = /*#__PURE__*/_curry2$1(function constructN(n, Fn) {
     if (n > 10) {
       throw new Error('Constructor with greater than ten arguments');
     }
@@ -20884,9 +20588,7 @@
    *      R.map(sightNewAnimal, animalTypes); //=> ["It's a Lion!", "It's a Tiger!", "It's a Bear!"]
    */
 
-  var construct$2 =
-  /*#__PURE__*/
-  _curry1$1(function construct(Fn) {
+  var construct$2 = /*#__PURE__*/_curry1$1(function construct(Fn) {
     return constructN$1(Fn.length, Fn);
   });
 
@@ -20914,9 +20616,7 @@
    *      R.contains('ba', 'banana'); //=>true
    */
 
-  var contains$3 =
-  /*#__PURE__*/
-  _curry2$1(_includes$1);
+  var contains$3 = /*#__PURE__*/_curry2$1(_includes$1);
 
   /**
    * Accepts a converging function and a list of branching functions and returns
@@ -20947,9 +20647,7 @@
    * @symb R.converge(f, [g, h])(a, b) = f(g(a, b), h(a, b))
    */
 
-  var converge$1 =
-  /*#__PURE__*/
-  _curry2$1(function converge(after, fns) {
+  var converge$1 = /*#__PURE__*/_curry2$1(function converge(after, fns) {
     return curryN$1(reduce$1(max$7, 0, pluck$1('length', fns)), function () {
       var args = arguments;
       var context = this;
@@ -20959,9 +20657,7 @@
     });
   });
 
-  var XReduceBy$1 =
-  /*#__PURE__*/
-  function () {
+  var XReduceBy$1 = /*#__PURE__*/function () {
     function XReduceBy(valueFn, valueAcc, keyFn, xf) {
       this.valueFn = valueFn;
       this.valueAcc = valueAcc;
@@ -21000,9 +20696,7 @@
     return XReduceBy;
   }();
 
-  var _xreduceBy$1 =
-  /*#__PURE__*/
-  _curryN$1(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
+  var _xreduceBy$1 = /*#__PURE__*/_curryN$1(4, [], function _xreduceBy(valueFn, valueAcc, keyFn, xf) {
     return new XReduceBy$1(valueFn, valueAcc, keyFn, xf);
   });
 
@@ -21048,11 +20742,7 @@
    *      //=> {"A": ["Dora"], "B": ["Abby", "Curt"], "F": ["Bart"]}
    */
 
-  var reduceBy$1 =
-  /*#__PURE__*/
-  _curryN$1(4, [],
-  /*#__PURE__*/
-  _dispatchable$1([], _xreduceBy$1, function reduceBy(valueFn, valueAcc, keyFn, list) {
+  var reduceBy$1 = /*#__PURE__*/_curryN$1(4, [], /*#__PURE__*/_dispatchable$1([], _xreduceBy$1, function reduceBy(valueFn, valueAcc, keyFn, list) {
     return _reduce$1(function (acc, elt) {
       var key = keyFn(elt);
       acc[key] = valueFn(_has$1(key, acc) ? acc[key] : _clone$1(valueAcc, [], [], false), elt);
@@ -21085,9 +20775,7 @@
    *      R.countBy(R.toLower)(letters);   //=> {'a': 3, 'b': 2, 'c': 1}
    */
 
-  var countBy$1 =
-  /*#__PURE__*/
-  reduceBy$1(function (acc, elem) {
+  var countBy$1 = /*#__PURE__*/reduceBy$1(function (acc, elem) {
     return acc + 1;
   }, 0);
 
@@ -21107,9 +20795,7 @@
    *      R.dec(42); //=> 41
    */
 
-  var dec$1 =
-  /*#__PURE__*/
-  add$1(-1);
+  var dec$1 = /*#__PURE__*/add$1(-1);
 
   /**
    * Returns the second argument if it is not `null`, `undefined` or `NaN`;
@@ -21135,9 +20821,7 @@
    *      defaultTo42(parseInt('string')); //=> 42
    */
 
-  var defaultTo$1 =
-  /*#__PURE__*/
-  _curry2$1(function defaultTo(d, v) {
+  var defaultTo$1 = /*#__PURE__*/_curry2$1(function defaultTo(d, v) {
     return v == null || v !== v ? d : v;
   });
 
@@ -21167,9 +20851,7 @@
    *        //=> [{ name: 'Peter', age: 78 }, { name: 'Emma', age: 70 }, { name: 'Mikhail', age: 62 }]
    */
 
-  var descend$1 =
-  /*#__PURE__*/
-  _curry3$1(function descend(fn, a, b) {
+  var descend$1 = /*#__PURE__*/_curry3$1(function descend(fn, a, b) {
     var aa = fn(a);
     var bb = fn(b);
     return aa > bb ? -1 : aa < bb ? 1 : 0;
@@ -21522,9 +21204,7 @@
     return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
   }, collectionStrong$1);
 
-  var _Set$1 =
-  /*#__PURE__*/
-  function () {
+  var _Set$1 = /*#__PURE__*/function () {
     function _Set() {
       /* globals Set */
       this._nativeSet = typeof Set === 'function' ? new Set() : null;
@@ -21741,9 +21421,7 @@
    *      R.difference([{a: 1}, {b: 2}], [{a: 1}, {c: 3}]) //=> [{b: 2}]
    */
 
-  var difference$1 =
-  /*#__PURE__*/
-  _curry2$1(function difference(first, second) {
+  var difference$1 = /*#__PURE__*/_curry2$1(function difference(first, second) {
     var out = [];
     var idx = 0;
     var firstLen = first.length;
@@ -21788,9 +21466,7 @@
    *      R.differenceWith(cmp, l1, l2); //=> [{a: 1}, {a: 2}]
    */
 
-  var differenceWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function differenceWith(pred, first, second) {
+  var differenceWith$1 = /*#__PURE__*/_curry3$1(function differenceWith(pred, first, second) {
     var out = [];
     var idx = 0;
     var firstLen = first.length;
@@ -21823,9 +21499,7 @@
    *      R.dissoc('b', {a: 1, b: 2, c: 3}); //=> {a: 1, c: 3}
    */
 
-  var dissoc$1 =
-  /*#__PURE__*/
-  _curry2$1(function dissoc(prop, obj) {
+  var dissoc$1 = /*#__PURE__*/_curry2$1(function dissoc(prop, obj) {
     var result = {};
 
     for (var p in obj) {
@@ -21917,9 +21591,7 @@
    *      R.remove(2, 3, [1,2,3,4,5,6,7,8]); //=> [1,2,6,7,8]
    */
 
-  var remove$1 =
-  /*#__PURE__*/
-  _curry3$1(function remove(start, count, list) {
+  var remove$1 = /*#__PURE__*/_curry3$1(function remove(start, count, list) {
     var result = Array.prototype.slice.call(list, 0);
     result.splice(start, count);
     return result;
@@ -21948,9 +21620,7 @@
    * @symb R.update(1, a, [b, c]) = [b, a]
    */
 
-  var update$1 =
-  /*#__PURE__*/
-  _curry3$1(function update(idx, x, list) {
+  var update$1 = /*#__PURE__*/_curry3$1(function update(idx, x, list) {
     return adjust$1(idx, always$1(x), list);
   });
 
@@ -21974,9 +21644,7 @@
    *      R.dissocPath(['a', 'b', 'c'], {a: {b: {c: 42}}}); //=> {a: {b: {}}}
    */
 
-  var dissocPath$1 =
-  /*#__PURE__*/
-  _curry2$1(function dissocPath(path, obj) {
+  var dissocPath$1 = /*#__PURE__*/_curry2$1(function dissocPath(path, obj) {
     switch (path.length) {
       case 0:
         return obj;
@@ -22022,15 +21690,11 @@
    *      reciprocal(4);   //=> 0.25
    */
 
-  var divide$1 =
-  /*#__PURE__*/
-  _curry2$1(function divide(a, b) {
+  var divide$1 = /*#__PURE__*/_curry2$1(function divide(a, b) {
     return a / b;
   });
 
-  var XDrop$1 =
-  /*#__PURE__*/
-  function () {
+  var XDrop$1 = /*#__PURE__*/function () {
     function XDrop(n, xf) {
       this.xf = xf;
       this.n = n;
@@ -22051,9 +21715,7 @@
     return XDrop;
   }();
 
-  var _xdrop$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xdrop(n, xf) {
+  var _xdrop$1 = /*#__PURE__*/_curry2$1(function _xdrop(n, xf) {
     return new XDrop$1(n, xf);
   });
 
@@ -22082,17 +21744,11 @@
    *      R.drop(3, 'ramda');               //=> 'da'
    */
 
-  var drop$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['drop'], _xdrop$1, function drop(n, xs) {
+  var drop$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['drop'], _xdrop$1, function drop(n, xs) {
     return slice$3(Math.max(0, n), Infinity, xs);
   }));
 
-  var XTake$1 =
-  /*#__PURE__*/
-  function () {
+  var XTake$1 = /*#__PURE__*/function () {
     function XTake(n, xf) {
       this.xf = xf;
       this.n = n;
@@ -22111,9 +21767,7 @@
     return XTake;
   }();
 
-  var _xtake$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xtake(n, xf) {
+  var _xtake$1 = /*#__PURE__*/_curry2$1(function _xtake(n, xf) {
     return new XTake$1(n, xf);
   });
 
@@ -22161,11 +21815,7 @@
    * @symb R.take(2, [a, b]) = [a, b]
    */
 
-  var take$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['take'], _xtake$1, function take(n, xs) {
+  var take$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['take'], _xtake$1, function take(n, xs) {
     return slice$3(0, n < 0 ? Infinity : n, xs);
   }));
 
@@ -22173,9 +21823,7 @@
     return take$1(n < xs.length ? xs.length - n : 0, xs);
   }
 
-  var XDropLast$1 =
-  /*#__PURE__*/
-  function () {
+  var XDropLast$1 = /*#__PURE__*/function () {
     function XDropLast(n, xf) {
       this.xf = xf;
       this.pos = 0;
@@ -22212,9 +21860,7 @@
     return XDropLast;
   }();
 
-  var _xdropLast$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xdropLast(n, xf) {
+  var _xdropLast$1 = /*#__PURE__*/_curry2$1(function _xdropLast(n, xf) {
     return new XDropLast$1(n, xf);
   });
 
@@ -22242,11 +21888,7 @@
    *      R.dropLast(3, 'ramda');               //=> 'ra'
    */
 
-  var dropLast$3 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xdropLast$1, dropLast$2));
+  var dropLast$3 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xdropLast$1, dropLast$2));
 
   function dropLastWhile$2(pred, xs) {
     var idx = xs.length - 1;
@@ -22258,9 +21900,7 @@
     return slice$3(0, idx + 1, xs);
   }
 
-  var XDropLastWhile$1 =
-  /*#__PURE__*/
-  function () {
+  var XDropLastWhile$1 = /*#__PURE__*/function () {
     function XDropLastWhile(fn, xf) {
       this.f = fn;
       this.retained = [];
@@ -22292,9 +21932,7 @@
     return XDropLastWhile;
   }();
 
-  var _xdropLastWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xdropLastWhile(fn, xf) {
+  var _xdropLastWhile$1 = /*#__PURE__*/_curry2$1(function _xdropLastWhile(fn, xf) {
     return new XDropLastWhile$1(fn, xf);
   });
 
@@ -22326,15 +21964,9 @@
    *      R.dropLastWhile(x => x !== 'd' , 'Ramda'); //=> 'Ramd'
    */
 
-  var dropLastWhile$3 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xdropLastWhile$1, dropLastWhile$2));
+  var dropLastWhile$3 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xdropLastWhile$1, dropLastWhile$2));
 
-  var XDropRepeatsWith$1 =
-  /*#__PURE__*/
-  function () {
+  var XDropRepeatsWith$1 = /*#__PURE__*/function () {
     function XDropRepeatsWith(pred, xf) {
       this.xf = xf;
       this.pred = pred;
@@ -22361,9 +21993,7 @@
     return XDropRepeatsWith;
   }();
 
-  var _xdropRepeatsWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xdropRepeatsWith(pred, xf) {
+  var _xdropRepeatsWith$1 = /*#__PURE__*/_curry2$1(function _xdropRepeatsWith(pred, xf) {
     return new XDropRepeatsWith$1(pred, xf);
   });
 
@@ -22388,9 +22018,7 @@
    *      R.last(''); //=> ''
    */
 
-  var last$3 =
-  /*#__PURE__*/
-  nth$1(-1);
+  var last$3 = /*#__PURE__*/nth$1(-1);
 
   /**
    * Returns a new list without any consecutively repeating elements. Equality is
@@ -22414,11 +22042,7 @@
    *      R.dropRepeatsWith(R.eqBy(Math.abs), l); //=> [1, 3, 4, -5, 3]
    */
 
-  var dropRepeatsWith$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xdropRepeatsWith$1, function dropRepeatsWith(pred, list) {
+  var dropRepeatsWith$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xdropRepeatsWith$1, function dropRepeatsWith(pred, list) {
     var result = [];
     var idx = 1;
     var len = list.length;
@@ -22457,19 +22081,9 @@
    *     R.dropRepeats([1, 1, 1, 2, 3, 4, 4, 2, 2]); //=> [1, 2, 3, 4, 2]
    */
 
-  var dropRepeats$1 =
-  /*#__PURE__*/
-  _curry1$1(
-  /*#__PURE__*/
-  _dispatchable$1([],
-  /*#__PURE__*/
-  _xdropRepeatsWith$1(equals$1),
-  /*#__PURE__*/
-  dropRepeatsWith$1(equals$1)));
+  var dropRepeats$1 = /*#__PURE__*/_curry1$1( /*#__PURE__*/_dispatchable$1([], /*#__PURE__*/_xdropRepeatsWith$1(equals$1), /*#__PURE__*/dropRepeatsWith$1(equals$1)));
 
-  var XDropWhile$1 =
-  /*#__PURE__*/
-  function () {
+  var XDropWhile$1 = /*#__PURE__*/function () {
     function XDropWhile(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -22493,9 +22107,7 @@
     return XDropWhile;
   }();
 
-  var _xdropWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xdropWhile(f, xf) {
+  var _xdropWhile$1 = /*#__PURE__*/_curry2$1(function _xdropWhile(f, xf) {
     return new XDropWhile$1(f, xf);
   });
 
@@ -22528,11 +22140,7 @@
    *      R.dropWhile(x => x !== 'd' , 'Ramda'); //=> 'da'
    */
 
-  var dropWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['dropWhile'], _xdropWhile$1, function dropWhile(pred, xs) {
+  var dropWhile$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['dropWhile'], _xdropWhile$1, function dropWhile(pred, xs) {
     var idx = 0;
     var len = xs.length;
 
@@ -22564,9 +22172,7 @@
    *      R.or(false, false); //=> false
    */
 
-  var or$1 =
-  /*#__PURE__*/
-  _curry2$1(function or(a, b) {
+  var or$1 = /*#__PURE__*/_curry2$1(function or(a, b) {
     return a || b;
   });
 
@@ -22601,9 +22207,7 @@
    *      R.either([false, false, 'a'], [11]) // => [11, 11, "a"]
    */
 
-  var either$1 =
-  /*#__PURE__*/
-  _curry2$1(function either(f, g) {
+  var either$1 = /*#__PURE__*/_curry2$1(function either(f, g) {
     return _isFunction$1(f) ? function _either() {
       return f.apply(this, arguments) || g.apply(this, arguments);
     } : lift$1(or$1)(f, g);
@@ -22633,9 +22237,7 @@
    *      R.empty({x: 1, y: 2});  //=> {}
    */
 
-  var empty$1 =
-  /*#__PURE__*/
-  _curry1$1(function empty(x) {
+  var empty$1 = /*#__PURE__*/_curry1$1(function empty(x) {
     return x != null && typeof x['fantasy-land/empty'] === 'function' ? x['fantasy-land/empty']() : x != null && x.constructor != null && typeof x.constructor['fantasy-land/empty'] === 'function' ? x.constructor['fantasy-land/empty']() : x != null && typeof x.empty === 'function' ? x.empty() : x != null && x.constructor != null && typeof x.constructor.empty === 'function' ? x.constructor.empty() : _isArray$1(x) ? [] : _isString$1(x) ? '' : _isObject$1(x) ? {} : _isArguments$1(x) ? function () {
       return arguments;
     }() : void 0 // else
@@ -22665,9 +22267,7 @@
    *      R.takeLast(3, 'ramda');               //=> 'mda'
    */
 
-  var takeLast$1 =
-  /*#__PURE__*/
-  _curry2$1(function takeLast(n, xs) {
+  var takeLast$1 = /*#__PURE__*/_curry2$1(function takeLast(n, xs) {
     return drop$1(n >= 0 ? xs.length - n : 0, xs);
   });
 
@@ -22694,9 +22294,7 @@
    *      R.endsWith(['b'], ['a', 'b', 'c'])    //=> false
    */
 
-  var endsWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function (suffix, list) {
+  var endsWith$1 = /*#__PURE__*/_curry2$1(function (suffix, list) {
     return equals$1(takeLast$1(suffix.length, list), suffix);
   });
 
@@ -22718,9 +22316,7 @@
    *      R.eqBy(Math.abs, 5, -5); //=> true
    */
 
-  var eqBy$1 =
-  /*#__PURE__*/
-  _curry3$1(function eqBy(f, x, y) {
+  var eqBy$1 = /*#__PURE__*/_curry3$1(function eqBy(f, x, y) {
     return equals$1(f(x), f(y));
   });
 
@@ -22746,9 +22342,7 @@
    *      R.eqProps('c', o1, o2); //=> true
    */
 
-  var eqProps$1 =
-  /*#__PURE__*/
-  _curry3$1(function eqProps(prop, obj1, obj2) {
+  var eqProps$1 = /*#__PURE__*/_curry3$1(function eqProps(prop, obj1, obj2) {
     return equals$1(obj1[prop], obj2[prop]);
   });
 
@@ -22780,9 +22374,7 @@
    *      R.evolve(transformations, tomato); //=> {firstName: 'Tomato', data: {elapsed: 101, remaining: 1399}, id:123}
    */
 
-  var evolve$1 =
-  /*#__PURE__*/
-  _curry2$1(function evolve(transformations, object) {
+  var evolve$1 = /*#__PURE__*/_curry2$1(function evolve(transformations, object) {
     var result = object instanceof Array ? [] : {};
     var transformation, key, type;
 
@@ -22795,9 +22387,7 @@
     return result;
   });
 
-  var XFind$1 =
-  /*#__PURE__*/
-  function () {
+  var XFind$1 = /*#__PURE__*/function () {
     function XFind(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -22826,9 +22416,7 @@
     return XFind;
   }();
 
-  var _xfind$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xfind(f, xf) {
+  var _xfind$1 = /*#__PURE__*/_curry2$1(function _xfind(f, xf) {
     return new XFind$1(f, xf);
   });
 
@@ -22857,11 +22445,7 @@
    *      R.find(R.propEq('a', 4))(xs); //=> undefined
    */
 
-  var find$2 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['find'], _xfind$1, function find(fn, list) {
+  var find$2 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['find'], _xfind$1, function find(fn, list) {
     var idx = 0;
     var len = list.length;
 
@@ -22874,9 +22458,7 @@
     }
   }));
 
-  var XFindIndex$1 =
-  /*#__PURE__*/
-  function () {
+  var XFindIndex$1 = /*#__PURE__*/function () {
     function XFindIndex(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -22908,9 +22490,7 @@
     return XFindIndex;
   }();
 
-  var _xfindIndex$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xfindIndex(f, xf) {
+  var _xfindIndex$1 = /*#__PURE__*/_curry2$1(function _xfindIndex(f, xf) {
     return new XFindIndex$1(f, xf);
   });
 
@@ -22937,11 +22517,7 @@
    *      R.findIndex(R.propEq('a', 4))(xs); //=> -1
    */
 
-  var findIndex$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xfindIndex$1, function findIndex(fn, list) {
+  var findIndex$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xfindIndex$1, function findIndex(fn, list) {
     var idx = 0;
     var len = list.length;
 
@@ -22956,9 +22532,7 @@
     return -1;
   }));
 
-  var XFindLast$1 =
-  /*#__PURE__*/
-  function () {
+  var XFindLast$1 = /*#__PURE__*/function () {
     function XFindLast(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -22981,9 +22555,7 @@
     return XFindLast;
   }();
 
-  var _xfindLast$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xfindLast(f, xf) {
+  var _xfindLast$1 = /*#__PURE__*/_curry2$1(function _xfindLast(f, xf) {
     return new XFindLast$1(f, xf);
   });
 
@@ -23010,11 +22582,7 @@
    *      R.findLast(R.propEq('a', 4))(xs); //=> undefined
    */
 
-  var findLast$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xfindLast$1, function findLast(fn, list) {
+  var findLast$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xfindLast$1, function findLast(fn, list) {
     var idx = list.length - 1;
 
     while (idx >= 0) {
@@ -23026,9 +22594,7 @@
     }
   }));
 
-  var XFindLastIndex$1 =
-  /*#__PURE__*/
-  function () {
+  var XFindLastIndex$1 = /*#__PURE__*/function () {
     function XFindLastIndex(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -23055,9 +22621,7 @@
     return XFindLastIndex;
   }();
 
-  var _xfindLastIndex$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xfindLastIndex(f, xf) {
+  var _xfindLastIndex$1 = /*#__PURE__*/_curry2$1(function _xfindLastIndex(f, xf) {
     return new XFindLastIndex$1(f, xf);
   });
 
@@ -23084,11 +22648,7 @@
    *      R.findLastIndex(R.propEq('a', 4))(xs); //=> -1
    */
 
-  var findLastIndex$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xfindLastIndex$1, function findLastIndex(fn, list) {
+  var findLastIndex$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xfindLastIndex$1, function findLastIndex(fn, list) {
     var idx = list.length - 1;
 
     while (idx >= 0) {
@@ -23120,11 +22680,7 @@
    *      //=> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
    */
 
-  var flatten$1 =
-  /*#__PURE__*/
-  _curry1$1(
-  /*#__PURE__*/
-  _makeFlat$1(true));
+  var flatten$1 = /*#__PURE__*/_curry1$1( /*#__PURE__*/_makeFlat$1(true));
 
   /**
    * Returns a new function much like the supplied one, except that the first two
@@ -23147,9 +22703,7 @@
    * @symb R.flip(f)(a, b, c) = f(b, a, c)
    */
 
-  var flip$1 =
-  /*#__PURE__*/
-  _curry1$1(function flip(fn) {
+  var flip$1 = /*#__PURE__*/_curry1$1(function flip(fn) {
     return curryN$1(fn.length, function (a, b) {
       var args = Array.prototype.slice.call(arguments, 0);
       args[0] = b;
@@ -23193,11 +22747,7 @@
    * @symb R.forEach(f, [a, b, c]) = [a, b, c]
    */
 
-  var forEach$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _checkForMethod$1('forEach', function forEach(fn, list) {
+  var forEach$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_checkForMethod$1('forEach', function forEach(fn, list) {
     var len = list.length;
     var idx = 0;
 
@@ -23232,9 +22782,7 @@
    * @symb R.forEachObjIndexed(f, {x: a, y: b}) = {x: a, y: b}
    */
 
-  var forEachObjIndexed$1 =
-  /*#__PURE__*/
-  _curry2$1(function forEachObjIndexed(fn, obj) {
+  var forEachObjIndexed$1 = /*#__PURE__*/_curry2$1(function forEachObjIndexed(fn, obj) {
     var keyList = keys$7(obj);
     var idx = 0;
 
@@ -23264,9 +22812,7 @@
    *      R.fromPairs([['a', 1], ['b', 2], ['c', 3]]); //=> {a: 1, b: 2, c: 3}
    */
 
-  var fromPairs$1 =
-  /*#__PURE__*/
-  _curry1$1(function fromPairs(pairs) {
+  var fromPairs$1 = /*#__PURE__*/_curry1$1(function fromPairs(pairs) {
     var result = {};
     var idx = 0;
 
@@ -23319,13 +22865,7 @@
    *      // }
    */
 
-  var groupBy$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _checkForMethod$1('groupBy',
-  /*#__PURE__*/
-  reduceBy$1(function (acc, item) {
+  var groupBy$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_checkForMethod$1('groupBy', /*#__PURE__*/reduceBy$1(function (acc, item) {
     if (acc == null) {
       acc = [];
     }
@@ -23365,9 +22905,7 @@
    * //=> ['ae', 'st', 'iou']
    */
 
-  var groupWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function (fn, list) {
+  var groupWith$1 = /*#__PURE__*/_curry2$1(function (fn, list) {
     var res = [];
     var idx = 0;
     var len = list.length;
@@ -23408,9 +22946,7 @@
    *      R.gt('z', 'a'); //=> true
    */
 
-  var gt$1 =
-  /*#__PURE__*/
-  _curry2$1(function gt(a, b) {
+  var gt$1 = /*#__PURE__*/_curry2$1(function gt(a, b) {
     return a > b;
   });
 
@@ -23436,9 +22972,7 @@
    *      R.gte('z', 'a'); //=> true
    */
 
-  var gte$1 =
-  /*#__PURE__*/
-  _curry2$1(function gte(a, b) {
+  var gte$1 = /*#__PURE__*/_curry2$1(function gte(a, b) {
     return a >= b;
   });
 
@@ -23464,9 +22998,7 @@
    *      R.hasPath(['a', 'b'], {});                  // => false
    */
 
-  var hasPath$1 =
-  /*#__PURE__*/
-  _curry2$1(function hasPath(_path, obj) {
+  var hasPath$1 = /*#__PURE__*/_curry2$1(function hasPath(_path, obj) {
     if (_path.length === 0 || isNil$1(obj)) {
       return false;
     }
@@ -23511,9 +23043,7 @@
    *      pointHas('z');  //=> false
    */
 
-  var has$5 =
-  /*#__PURE__*/
-  _curry2$1(function has(prop, obj) {
+  var has$5 = /*#__PURE__*/_curry2$1(function has(prop, obj) {
     return hasPath$1([prop], obj);
   });
 
@@ -23544,9 +23074,7 @@
    *      R.hasIn('area', square);  //=> true
    */
 
-  var hasIn$1 =
-  /*#__PURE__*/
-  _curry2$1(function hasIn(prop, obj) {
+  var hasIn$1 = /*#__PURE__*/_curry2$1(function hasIn(prop, obj) {
     return prop in obj;
   });
 
@@ -23576,9 +23104,7 @@
    *      R.identical(NaN, NaN); //=> true
    */
 
-  var identical$1 =
-  /*#__PURE__*/
-  _curry2$1(_objectIs$3);
+  var identical$1 = /*#__PURE__*/_curry2$1(_objectIs$3);
 
   /**
    * Creates a function that will process either the `onTrue` or the `onFalse`
@@ -23606,9 +23132,7 @@
    *      incCount({ count: 1 }); //=> { count: 2 }
    */
 
-  var ifElse$1 =
-  /*#__PURE__*/
-  _curry3$1(function ifElse(condition, onTrue, onFalse) {
+  var ifElse$1 = /*#__PURE__*/_curry3$1(function ifElse(condition, onTrue, onFalse) {
     return curryN$1(Math.max(condition.length, onTrue.length, onFalse.length), function _ifElse() {
       return condition.apply(this, arguments) ? onTrue.apply(this, arguments) : onFalse.apply(this, arguments);
     });
@@ -23630,9 +23154,7 @@
    *      R.inc(42); //=> 43
    */
 
-  var inc$1 =
-  /*#__PURE__*/
-  add$1(1);
+  var inc$1 = /*#__PURE__*/add$1(1);
 
   /**
    * Returns `true` if the specified value is equal, in [`R.equals`](#equals)
@@ -23657,9 +23179,7 @@
    *      R.includes('ba', 'banana'); //=>true
    */
 
-  var includes$1 =
-  /*#__PURE__*/
-  _curry2$1(_includes$1);
+  var includes$1 = /*#__PURE__*/_curry2$1(_includes$1);
 
   /**
    * Given a function that generates a key, turns a list of objects into an
@@ -23684,9 +23204,7 @@
    *      //=> {abc: {id: 'abc', title: 'B'}, xyz: {id: 'xyz', title: 'A'}}
    */
 
-  var indexBy$1 =
-  /*#__PURE__*/
-  reduceBy$1(function (acc, elem) {
+  var indexBy$1 = /*#__PURE__*/reduceBy$1(function (acc, elem) {
     return elem;
   }, null);
 
@@ -23710,9 +23228,7 @@
    *      R.indexOf(10, [1,2,3,4]); //=> -1
    */
 
-  var indexOf$3 =
-  /*#__PURE__*/
-  _curry2$1(function indexOf(target, xs) {
+  var indexOf$3 = /*#__PURE__*/_curry2$1(function indexOf(target, xs) {
     return typeof xs.indexOf === 'function' && !_isArray$1(xs) ? xs.indexOf(target) : _indexOf$1(xs, target, 0);
   });
 
@@ -23741,9 +23257,7 @@
    *      R.init('');     //=> ''
    */
 
-  var init$1 =
-  /*#__PURE__*/
-  slice$3(0, -1);
+  var init$1 = /*#__PURE__*/slice$3(0, -1);
 
   /**
    * Takes a predicate `pred`, a list `xs`, and a list `ys`, and returns a list
@@ -23781,9 +23295,7 @@
    *      //=> [{id: 456, name: 'Stephen Stills'}, {id: 177, name: 'Neil Young'}]
    */
 
-  var innerJoin$1 =
-  /*#__PURE__*/
-  _curry3$1(function innerJoin(pred, xs, ys) {
+  var innerJoin$1 = /*#__PURE__*/_curry3$1(function innerJoin(pred, xs, ys) {
     return _filter$1(function (x) {
       return _includesWith$1(pred, x, ys);
     }, xs);
@@ -23809,9 +23321,7 @@
    *      R.insert(2, 'x', [1,2,3,4]); //=> [1,2,'x',3,4]
    */
 
-  var insert$1 =
-  /*#__PURE__*/
-  _curry3$1(function insert(idx, elt, list) {
+  var insert$1 = /*#__PURE__*/_curry3$1(function insert(idx, elt, list) {
     idx = idx < list.length && idx >= 0 ? idx : list.length;
     var result = Array.prototype.slice.call(list, 0);
     result.splice(idx, 0, elt);
@@ -23837,9 +23347,7 @@
    *      R.insertAll(2, ['x','y','z'], [1,2,3,4]); //=> [1,2,'x','y','z',3,4]
    */
 
-  var insertAll$1 =
-  /*#__PURE__*/
-  _curry3$1(function insertAll(idx, elts, list) {
+  var insertAll$1 = /*#__PURE__*/_curry3$1(function insertAll(idx, elts, list) {
     idx = idx < list.length && idx >= 0 ? idx : list.length;
     return [].concat(Array.prototype.slice.call(list, 0, idx), elts, Array.prototype.slice.call(list, idx));
   });
@@ -23863,9 +23371,7 @@
    *      R.uniqBy(Math.abs, [-1, -5, 2, 10, 1, 2]); //=> [-1, -5, 2, 10]
    */
 
-  var uniqBy$1 =
-  /*#__PURE__*/
-  _curry2$1(function uniqBy(fn, list) {
+  var uniqBy$1 = /*#__PURE__*/_curry2$1(function uniqBy(fn, list) {
     var set = new _Set$1();
     var result = [];
     var idx = 0;
@@ -23903,9 +23409,7 @@
    *      R.uniq([[42], [42]]); //=> [[42]]
    */
 
-  var uniq$1 =
-  /*#__PURE__*/
-  uniqBy$1(identity$1);
+  var uniq$1 = /*#__PURE__*/uniqBy$1(identity$1);
 
   /**
    * Combines two lists into a set (i.e. no duplicates) composed of those
@@ -23925,9 +23429,7 @@
    *      R.intersection([1,2,3,4], [7,6,5,4,3]); //=> [4, 3]
    */
 
-  var intersection$1 =
-  /*#__PURE__*/
-  _curry2$1(function intersection(list1, list2) {
+  var intersection$1 = /*#__PURE__*/_curry2$1(function intersection(list1, list2) {
     var lookupList, filteredList;
 
     if (list1.length > list2.length) {
@@ -23959,11 +23461,7 @@
    *      R.intersperse('a', ['b', 'n', 'n', 's']); //=> ['b', 'a', 'n', 'a', 'n', 'a', 's']
    */
 
-  var intersperse$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _checkForMethod$1('intersperse', function intersperse(separator, list) {
+  var intersperse$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_checkForMethod$1('intersperse', function intersperse(separator, list) {
     var out = [];
     var idx = 0;
     var length = list.length;
@@ -24030,9 +23528,7 @@
    *      matchPhrases(['foo', 'bar', 'baz']); //=> {must: [{match_phrase: 'foo'}, {match_phrase: 'bar'}, {match_phrase: 'baz'}]}
    */
 
-  var objOf$1 =
-  /*#__PURE__*/
-  _curry2$1(function objOf(key, val) {
+  var objOf$1 = /*#__PURE__*/_curry2$1(function objOf(key, val) {
     var obj = {};
     obj[key] = val;
     return obj;
@@ -24120,9 +23616,7 @@
    *      intoArray(transducer, numbers); //=> [2, 3]
    */
 
-  var into$1 =
-  /*#__PURE__*/
-  _curry3$1(function into(acc, xf, list) {
+  var into$1 = /*#__PURE__*/_curry3$1(function into(acc, xf, list) {
     return _isTransformer$1(acc) ? _reduce$1(xf(acc), acc['@@transducer/init'](), list) : _reduce$1(xf(_stepCat$1(acc)), _clone$1(acc, [], [], false), list);
   });
 
@@ -24149,9 +23643,7 @@
    *      //=> { 'alice': ['first', 'third'], 'jake':['second'] }
    */
 
-  var invert$1 =
-  /*#__PURE__*/
-  _curry1$1(function invert(obj) {
+  var invert$1 = /*#__PURE__*/_curry1$1(function invert(obj) {
     var props = keys$7(obj);
     var len = props.length;
     var idx = 0;
@@ -24196,9 +23688,7 @@
    *      //=> { 'alice': '0', 'jake':'1' }
    */
 
-  var invertObj$1 =
-  /*#__PURE__*/
-  _curry1$1(function invertObj(obj) {
+  var invertObj$1 = /*#__PURE__*/_curry1$1(function invertObj(obj) {
     var props = keys$7(obj);
     var len = props.length;
     var idx = 0;
@@ -24248,9 +23738,7 @@
    * @symb R.invoker(2, 'method')(a, b, o) = o['method'](a, b)
    */
 
-  var invoker$1 =
-  /*#__PURE__*/
-  _curry2$1(function invoker(arity, method) {
+  var invoker$1 = /*#__PURE__*/_curry2$1(function invoker(arity, method) {
     return curryN$1(arity + 1, function () {
       var target = arguments[arity];
 
@@ -24286,9 +23774,7 @@
    *      R.is(Number, {}); //=> false
    */
 
-  var is$1 =
-  /*#__PURE__*/
-  _curry2$1(function is(Ctor, val) {
+  var is$1 = /*#__PURE__*/_curry2$1(function is(Ctor, val) {
     return val != null && val.constructor === Ctor || val instanceof Ctor;
   });
 
@@ -24314,9 +23800,7 @@
    *      R.isEmpty({length: 0}); //=> false
    */
 
-  var isEmpty$1 =
-  /*#__PURE__*/
-  _curry1$1(function isEmpty(x) {
+  var isEmpty$1 = /*#__PURE__*/_curry1$1(function isEmpty(x) {
     return x != null && equals$1(x, empty$1(x));
   });
 
@@ -24340,9 +23824,7 @@
    *      R.join('|', [1, 2, 3]);    //=> '1|2|3'
    */
 
-  var join$1 =
-  /*#__PURE__*/
-  invoker$1(1, 'join');
+  var join$1 = /*#__PURE__*/invoker$1(1, 'join');
 
   /**
    * juxt applies a list of functions to a list of values.
@@ -24362,9 +23844,7 @@
    * @symb R.juxt([f, g, h])(a, b) = [f(a, b), g(a, b), h(a, b)]
    */
 
-  var juxt$1 =
-  /*#__PURE__*/
-  _curry1$1(function juxt(fns) {
+  var juxt$1 = /*#__PURE__*/_curry1$1(function juxt(fns) {
     return converge$1(function () {
       return Array.prototype.slice.call(arguments, 0);
     }, fns);
@@ -24392,9 +23872,7 @@
    *      R.keysIn(f); //=> ['x', 'y']
    */
 
-  var keysIn$1 =
-  /*#__PURE__*/
-  _curry1$1(function keysIn(obj) {
+  var keysIn$1 = /*#__PURE__*/_curry1$1(function keysIn(obj) {
     var prop;
     var ks = [];
 
@@ -24431,9 +23909,7 @@
    *      R.lastIndexOf(10, [1,2,3,4]); //=> -1
    */
 
-  var lastIndexOf$1 =
-  /*#__PURE__*/
-  _curry2$1(function lastIndexOf(target, xs) {
+  var lastIndexOf$1 = /*#__PURE__*/_curry2$1(function lastIndexOf(target, xs) {
     if (typeof xs.lastIndexOf === 'function' && !_isArray$1(xs)) {
       return xs.lastIndexOf(target);
     } else {
@@ -24471,9 +23947,7 @@
    *      R.length([1, 2, 3]); //=> 3
    */
 
-  var length$1 =
-  /*#__PURE__*/
-  _curry1$1(function length(list) {
+  var length$1 = /*#__PURE__*/_curry1$1(function length(list) {
     return list != null && _isNumber$1(list.length) ? list.length : NaN;
   });
 
@@ -24501,9 +23975,7 @@
    *      R.over(xLens, R.negate, {x: 1, y: 2});  //=> {x: -1, y: 2}
    */
 
-  var lens$1 =
-  /*#__PURE__*/
-  _curry2$1(function lens(getter, setter) {
+  var lens$1 = /*#__PURE__*/_curry2$1(function lens(getter, setter) {
     return function (toFunctorFn) {
       return function (target) {
         return map$1(function (focus) {
@@ -24534,9 +24006,7 @@
    *      R.over(headLens, R.toUpper, ['a', 'b', 'c']); //=> ['A', 'b', 'c']
    */
 
-  var lensIndex$1 =
-  /*#__PURE__*/
-  _curry1$1(function lensIndex(n) {
+  var lensIndex$1 = /*#__PURE__*/_curry1$1(function lensIndex(n) {
     return lens$1(nth$1(n), update$1(n));
   });
 
@@ -24565,9 +24035,7 @@
    *      //=> {x: [{y: -2, z: 3}, {y: 4, z: 5}]}
    */
 
-  var lensPath$1 =
-  /*#__PURE__*/
-  _curry1$1(function lensPath(p) {
+  var lensPath$1 = /*#__PURE__*/_curry1$1(function lensPath(p) {
     return lens$1(path$3(p), assocPath$1(p));
   });
 
@@ -24592,9 +24060,7 @@
    *      R.over(xLens, R.negate, {x: 1, y: 2});  //=> {x: -1, y: 2}
    */
 
-  var lensProp$1 =
-  /*#__PURE__*/
-  _curry1$1(function lensProp(k) {
+  var lensProp$1 = /*#__PURE__*/_curry1$1(function lensProp(k) {
     return lens$1(prop$1(k), assoc$1(k));
   });
 
@@ -24620,9 +24086,7 @@
    *      R.lt('z', 'a'); //=> false
    */
 
-  var lt$1 =
-  /*#__PURE__*/
-  _curry2$1(function lt(a, b) {
+  var lt$1 = /*#__PURE__*/_curry2$1(function lt(a, b) {
     return a < b;
   });
 
@@ -24648,9 +24112,7 @@
    *      R.lte('z', 'a'); //=> false
    */
 
-  var lte$1 =
-  /*#__PURE__*/
-  _curry2$1(function lte(a, b) {
+  var lte$1 = /*#__PURE__*/_curry2$1(function lte(a, b) {
     return a <= b;
   });
 
@@ -24689,9 +24151,7 @@
    * ]
    */
 
-  var mapAccum$1 =
-  /*#__PURE__*/
-  _curry3$1(function mapAccum(fn, acc, list) {
+  var mapAccum$1 = /*#__PURE__*/_curry3$1(function mapAccum(fn, acc, list) {
     var idx = 0;
     var len = list.length;
     var result = [];
@@ -24744,9 +24204,7 @@
    * ]
    */
 
-  var mapAccumRight$1 =
-  /*#__PURE__*/
-  _curry3$1(function mapAccumRight(fn, acc, list) {
+  var mapAccumRight$1 = /*#__PURE__*/_curry3$1(function mapAccumRight(fn, acc, list) {
     var idx = list.length - 1;
     var result = [];
     var tuple = [acc];
@@ -24782,9 +24240,7 @@
    *      R.mapObjIndexed(prependKeyAndDouble, xyz); //=> { x: 'x2', y: 'y4', z: 'z6' }
    */
 
-  var mapObjIndexed$1 =
-  /*#__PURE__*/
-  _curry2$1(function mapObjIndexed(fn, obj) {
+  var mapObjIndexed$1 = /*#__PURE__*/_curry2$1(function mapObjIndexed(fn, obj) {
     return _reduce$1(function (acc, key) {
       acc[key] = fn(obj[key], key, obj);
       return acc;
@@ -24813,9 +24269,7 @@
    *      R.match(/a/, null); //=> TypeError: null does not have a method named "match"
    */
 
-  var match$3 =
-  /*#__PURE__*/
-  _curry2$1(function match(rx, str) {
+  var match$3 = /*#__PURE__*/_curry2$1(function match(rx, str) {
     return str.match(rx) || [];
   });
 
@@ -24853,9 +24307,7 @@
    *      seventeenMod(10); //=> 7
    */
 
-  var mathMod$1 =
-  /*#__PURE__*/
-  _curry2$1(function mathMod(m, p) {
+  var mathMod$1 = /*#__PURE__*/_curry2$1(function mathMod(m, p) {
     if (!_isInteger$1(m)) {
       return NaN;
     }
@@ -24892,9 +24344,7 @@
    *      R.reduce(R.maxBy(square), 0, []); //=> 0
    */
 
-  var maxBy$1 =
-  /*#__PURE__*/
-  _curry3$1(function maxBy(f, a, b) {
+  var maxBy$1 = /*#__PURE__*/_curry3$1(function maxBy(f, a, b) {
     return f(b) > f(a) ? b : a;
   });
 
@@ -24914,9 +24364,7 @@
    *      R.sum([2,4,6,8,100,1]); //=> 121
    */
 
-  var sum$1 =
-  /*#__PURE__*/
-  reduce$1(add$1, 0);
+  var sum$1 = /*#__PURE__*/reduce$1(add$1, 0);
 
   /**
    * Returns the mean of the given list of numbers.
@@ -24935,9 +24383,7 @@
    *      R.mean([]); //=> NaN
    */
 
-  var mean$1 =
-  /*#__PURE__*/
-  _curry1$1(function mean(list) {
+  var mean$1 = /*#__PURE__*/_curry1$1(function mean(list) {
     return sum$1(list) / list.length;
   });
 
@@ -24959,9 +24405,7 @@
    *      R.median([]); //=> NaN
    */
 
-  var median$1 =
-  /*#__PURE__*/
-  _curry1$1(function median(list) {
+  var median$1 = /*#__PURE__*/_curry1$1(function median(list) {
     var len = list.length;
 
     if (len === 0) {
@@ -25004,9 +24448,7 @@
    *      count; //=> 1
    */
 
-  var memoizeWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function memoizeWith(mFn, fn) {
+  var memoizeWith$1 = /*#__PURE__*/_curry2$1(function memoizeWith(mFn, fn) {
     var cache = {};
     return _arity$1(fn.length, function () {
       var key = mFn.apply(this, arguments);
@@ -25044,9 +24486,7 @@
    * @symb R.merge(a, b) = {...a, ...b}
    */
 
-  var merge$1 =
-  /*#__PURE__*/
-  _curry2$1(function merge(l, r) {
+  var merge$1 = /*#__PURE__*/_curry2$1(function merge(l, r) {
     return _objectAssign$3({}, l, r);
   });
 
@@ -25068,9 +24508,7 @@
    * @symb R.mergeAll([{ x: 1 }, { y: 2 }, { z: 3 }]) = { x: 1, y: 2, z: 3 }
    */
 
-  var mergeAll$1 =
-  /*#__PURE__*/
-  _curry1$1(function mergeAll(list) {
+  var mergeAll$1 = /*#__PURE__*/_curry1$1(function mergeAll(list) {
     return _objectAssign$3.apply(null, [{}].concat(list));
   });
 
@@ -25100,9 +24538,7 @@
    * @symb R.mergeWithKey(f, { x: 1, y: 2 }, { y: 5, z: 3 }) = { x: 1, y: f('y', 2, 5), z: 3 }
    */
 
-  var mergeWithKey$1 =
-  /*#__PURE__*/
-  _curry3$1(function mergeWithKey(fn, l, r) {
+  var mergeWithKey$1 = /*#__PURE__*/_curry3$1(function mergeWithKey(fn, l, r) {
     var result = {};
     var k;
 
@@ -25150,9 +24586,7 @@
    *      //=> { a: true, b: true, c: { thing: 'bar', values: [10, 20, 15, 35] }}
    */
 
-  var mergeDeepWithKey$1 =
-  /*#__PURE__*/
-  _curry3$1(function mergeDeepWithKey(fn, lObj, rObj) {
+  var mergeDeepWithKey$1 = /*#__PURE__*/_curry3$1(function mergeDeepWithKey(fn, lObj, rObj) {
     return mergeWithKey$1(function (k, lVal, rVal) {
       if (_isObject$1(lVal) && _isObject$1(rVal)) {
         return mergeDeepWithKey(fn, lVal, rVal);
@@ -25184,9 +24618,7 @@
    *      //=> { name: 'fred', age: 10, contact: { email: 'moo@example.com' }}
    */
 
-  var mergeDeepLeft$1 =
-  /*#__PURE__*/
-  _curry2$1(function mergeDeepLeft(lObj, rObj) {
+  var mergeDeepLeft$1 = /*#__PURE__*/_curry2$1(function mergeDeepLeft(lObj, rObj) {
     return mergeDeepWithKey$1(function (k, lVal, rVal) {
       return lVal;
     }, lObj, rObj);
@@ -25214,9 +24646,7 @@
    *      //=> { name: 'fred', age: 40, contact: { email: 'baa@example.com' }}
    */
 
-  var mergeDeepRight$1 =
-  /*#__PURE__*/
-  _curry2$1(function mergeDeepRight(lObj, rObj) {
+  var mergeDeepRight$1 = /*#__PURE__*/_curry2$1(function mergeDeepRight(lObj, rObj) {
     return mergeDeepWithKey$1(function (k, lVal, rVal) {
       return rVal;
     }, lObj, rObj);
@@ -25250,9 +24680,7 @@
    *      //=> { a: true, b: true, c: { values: [10, 20, 15, 35] }}
    */
 
-  var mergeDeepWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function mergeDeepWith(fn, lObj, rObj) {
+  var mergeDeepWith$1 = /*#__PURE__*/_curry3$1(function mergeDeepWith(fn, lObj, rObj) {
     return mergeDeepWithKey$1(function (k, lVal, rVal) {
       return fn(lVal, rVal);
     }, lObj, rObj);
@@ -25282,9 +24710,7 @@
    * @symb R.mergeLeft(a, b) = {...b, ...a}
    */
 
-  var mergeLeft$1 =
-  /*#__PURE__*/
-  _curry2$1(function mergeLeft(l, r) {
+  var mergeLeft$1 = /*#__PURE__*/_curry2$1(function mergeLeft(l, r) {
     return _objectAssign$3({}, r, l);
   });
 
@@ -25312,9 +24738,7 @@
    * @symb R.mergeRight(a, b) = {...a, ...b}
    */
 
-  var mergeRight$1 =
-  /*#__PURE__*/
-  _curry2$1(function mergeRight(l, r) {
+  var mergeRight$1 = /*#__PURE__*/_curry2$1(function mergeRight(l, r) {
     return _objectAssign$3({}, l, r);
   });
 
@@ -25342,9 +24766,7 @@
    *      //=> { a: true, b: true, values: [10, 20, 15, 35] }
    */
 
-  var mergeWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function mergeWith(fn, l, r) {
+  var mergeWith$1 = /*#__PURE__*/_curry3$1(function mergeWith(fn, l, r) {
     return mergeWithKey$1(function (_, _l, _r) {
       return fn(_l, _r);
     }, l, r);
@@ -25368,9 +24790,7 @@
    *      R.min('a', 'b'); //=> 'a'
    */
 
-  var min$e =
-  /*#__PURE__*/
-  _curry2$1(function min(a, b) {
+  var min$e = /*#__PURE__*/_curry2$1(function min(a, b) {
     return b < a ? b : a;
   });
 
@@ -25399,9 +24819,7 @@
    *      R.reduce(R.minBy(square), Infinity, []); //=> Infinity
    */
 
-  var minBy$1 =
-  /*#__PURE__*/
-  _curry3$1(function minBy(f, a, b) {
+  var minBy$1 = /*#__PURE__*/_curry3$1(function minBy(f, a, b) {
     return f(b) < f(a) ? b : a;
   });
 
@@ -25431,9 +24849,7 @@
    *      isOdd(21); //=> 1
    */
 
-  var modulo$1 =
-  /*#__PURE__*/
-  _curry2$1(function modulo(a, b) {
+  var modulo$1 = /*#__PURE__*/_curry2$1(function modulo(a, b) {
     return a % b;
   });
 
@@ -25456,9 +24872,7 @@
    *      R.move(-1, 0, ['a', 'b', 'c', 'd', 'e', 'f']); //=> ['f', 'a', 'b', 'c', 'd', 'e'] list rotation
    */
 
-  var move$1 =
-  /*#__PURE__*/
-  _curry3$1(function (from, to, list) {
+  var move$1 = /*#__PURE__*/_curry3$1(function (from, to, list) {
     var length = list.length;
     var result = list.slice();
     var positiveFrom = from < 0 ? length + from : from;
@@ -25488,9 +24902,7 @@
    *      R.multiply(2, 5);  //=> 10
    */
 
-  var multiply$1 =
-  /*#__PURE__*/
-  _curry2$1(function multiply(a, b) {
+  var multiply$1 = /*#__PURE__*/_curry2$1(function multiply(a, b) {
     return a * b;
   });
 
@@ -25509,9 +24921,7 @@
    *      R.negate(42); //=> -42
    */
 
-  var negate$1 =
-  /*#__PURE__*/
-  _curry1$1(function negate(n) {
+  var negate$1 = /*#__PURE__*/_curry1$1(function negate(n) {
     return -n;
   });
 
@@ -25541,9 +24951,7 @@
    *      R.none(isOdd, [1, 3, 5, 7, 8, 11]); //=> false
    */
 
-  var none$1 =
-  /*#__PURE__*/
-  _curry2$1(function none(fn, input) {
+  var none$1 = /*#__PURE__*/_curry2$1(function none(fn, input) {
     return all$1(_complement$1(fn), input);
   });
 
@@ -25566,9 +24974,7 @@
    * @symb R.nthArg(1)(a, b, c) = b
    */
 
-  var nthArg$1 =
-  /*#__PURE__*/
-  _curry1$1(function nthArg(n) {
+  var nthArg$1 = /*#__PURE__*/_curry1$1(function nthArg(n) {
     var arity = n < 0 ? 1 : n + 1;
     return curryN$1(arity, function () {
       return nth$1(n, arguments);
@@ -25603,9 +25009,7 @@
    * @symb R.o(f, g, x) = f(g(x))
    */
 
-  var o$1 =
-  /*#__PURE__*/
-  _curry3$1(function o(f, g, x) {
+  var o$1 = /*#__PURE__*/_curry3$1(function o(f, g, x) {
     return f(g(x));
   });
 
@@ -25632,9 +25036,7 @@
    *      R.of([42]); //=> [[42]]
    */
 
-  var of$1 =
-  /*#__PURE__*/
-  _curry1$1(_of$1);
+  var of$1 = /*#__PURE__*/_curry1$1(_of$1);
 
   /**
    * Returns a partial copy of an object omitting the keys specified.
@@ -25653,9 +25055,7 @@
    *      R.omit(['a', 'd'], {a: 1, b: 2, c: 3, d: 4}); //=> {b: 2, c: 3}
    */
 
-  var omit$1 =
-  /*#__PURE__*/
-  _curry2$1(function omit(names, obj) {
+  var omit$1 = /*#__PURE__*/_curry2$1(function omit(names, obj) {
     var result = {};
     var index = {};
     var idx = 0;
@@ -25695,9 +25095,7 @@
    *      addOneOnce(addOneOnce(50)); //=> 11
    */
 
-  var once$1 =
-  /*#__PURE__*/
-  _curry1$1(function once(fn) {
+  var once$1 = /*#__PURE__*/_curry1$1(function once(fn) {
     var called = false;
     var result;
     return _arity$1(fn.length, function () {
@@ -25746,9 +25144,7 @@
    *      recoverFromFailure(12345).then(console.log)
    */
 
-  var otherwise$1 =
-  /*#__PURE__*/
-  _curry2$1(function otherwise(f, p) {
+  var otherwise$1 = /*#__PURE__*/_curry2$1(function otherwise(f, p) {
     _assertPromise$1('otherwise', p);
 
     return p.then(null, f);
@@ -25788,9 +25184,7 @@
    */
 
 
-  var over$1 =
-  /*#__PURE__*/
-  _curry3$1(function over(lens, f, x) {
+  var over$1 = /*#__PURE__*/_curry3$1(function over(lens, f, x) {
     // The value returned by the getter function is first transformed with `f`,
     // then set as the value of an `Identity`. This is then mapped over with the
     // setter function of the lens.
@@ -25816,9 +25210,7 @@
    *      R.pair('foo', 'bar'); //=> ['foo', 'bar']
    */
 
-  var pair$1 =
-  /*#__PURE__*/
-  _curry2$1(function pair(fst, snd) {
+  var pair$1 = /*#__PURE__*/_curry2$1(function pair(fst, snd) {
     return [fst, snd];
   });
 
@@ -25859,9 +25251,7 @@
    * @symb R.partial(f, [a, b])(c, d) = f(a, b, c, d)
    */
 
-  var partial$1 =
-  /*#__PURE__*/
-  _createPartialApplicator$1(_concat$1);
+  var partial$1 = /*#__PURE__*/_createPartialApplicator$1(_concat$1);
 
   /**
    * Takes a function `f` and a list of arguments, and returns a function `g`.
@@ -25888,11 +25278,7 @@
    * @symb R.partialRight(f, [a, b])(c, d) = f(c, d, a, b)
    */
 
-  var partialRight$1 =
-  /*#__PURE__*/
-  _createPartialApplicator$1(
-  /*#__PURE__*/
-  flip$1(_concat$1));
+  var partialRight$1 = /*#__PURE__*/_createPartialApplicator$1( /*#__PURE__*/flip$1(_concat$1));
 
   /**
    * Takes a predicate and a list or other `Filterable` object and returns the
@@ -25919,9 +25305,7 @@
    *      // => [ { a: 'sss', foo: 'bars' }, { b: 'ttt' }  ]
    */
 
-  var partition$1 =
-  /*#__PURE__*/
-  juxt$1([filter$1, reject$1]);
+  var partition$1 = /*#__PURE__*/juxt$1([filter$1, reject$1]);
 
   /**
    * Determines whether a nested path on an object has a specific value, in
@@ -25948,9 +25332,7 @@
    *      R.filter(isFamous, users); //=> [ user1 ]
    */
 
-  var pathEq$1 =
-  /*#__PURE__*/
-  _curry3$1(function pathEq(_path, val, obj) {
+  var pathEq$1 = /*#__PURE__*/_curry3$1(function pathEq(_path, val, obj) {
     return equals$1(path$3(_path, obj), val);
   });
 
@@ -25974,9 +25356,7 @@
    *      R.pathOr('N/A', ['a', 'b'], {c: {b: 2}}); //=> "N/A"
    */
 
-  var pathOr$1 =
-  /*#__PURE__*/
-  _curry3$1(function pathOr(d, p, obj) {
+  var pathOr$1 = /*#__PURE__*/_curry3$1(function pathOr(d, p, obj) {
     return defaultTo$1(d, path$3(p, obj));
   });
 
@@ -26001,9 +25381,7 @@
    *      R.pathSatisfies(R.is(Object), [], {x: {y: 2}}); //=> true
    */
 
-  var pathSatisfies$1 =
-  /*#__PURE__*/
-  _curry3$1(function pathSatisfies(pred, propPath, obj) {
+  var pathSatisfies$1 = /*#__PURE__*/_curry3$1(function pathSatisfies(pred, propPath, obj) {
     return pred(path$3(propPath, obj));
   });
 
@@ -26026,9 +25404,7 @@
    *      R.pick(['a', 'e', 'f'], {a: 1, b: 2, c: 3, d: 4}); //=> {a: 1}
    */
 
-  var pick$1 =
-  /*#__PURE__*/
-  _curry2$1(function pick(names, obj) {
+  var pick$1 = /*#__PURE__*/_curry2$1(function pick(names, obj) {
     var result = {};
     var idx = 0;
 
@@ -26062,9 +25438,7 @@
    *      R.pickAll(['a', 'e', 'f'], {a: 1, b: 2, c: 3, d: 4}); //=> {a: 1, e: undefined, f: undefined}
    */
 
-  var pickAll$1 =
-  /*#__PURE__*/
-  _curry2$1(function pickAll(names, obj) {
+  var pickAll$1 = /*#__PURE__*/_curry2$1(function pickAll(names, obj) {
     var result = {};
     var idx = 0;
     var len = names.length;
@@ -26099,9 +25473,7 @@
    *      R.pickBy(isUpperCase, {a: 1, b: 2, A: 3, B: 4}); //=> {A: 3, B: 4}
    */
 
-  var pickBy$1 =
-  /*#__PURE__*/
-  _curry2$1(function pickBy(test, obj) {
+  var pickBy$1 = /*#__PURE__*/_curry2$1(function pickBy(test, obj) {
     var result = {};
 
     for (var prop in obj) {
@@ -26175,9 +25547,7 @@
    *      R.prepend('fee', ['fi', 'fo', 'fum']); //=> ['fee', 'fi', 'fo', 'fum']
    */
 
-  var prepend$1 =
-  /*#__PURE__*/
-  _curry2$1(function prepend(el, list) {
+  var prepend$1 = /*#__PURE__*/_curry2$1(function prepend(el, list) {
     return _concat$1([el], list);
   });
 
@@ -26197,9 +25567,7 @@
    *      R.product([2,4,6,8,100,1]); //=> 38400
    */
 
-  var product$1 =
-  /*#__PURE__*/
-  reduce$1(multiply$1, 1);
+  var product$1 = /*#__PURE__*/reduce$1(multiply$1, 1);
 
   /**
    * Accepts a function `fn` and a list of transformer functions and returns a
@@ -26231,9 +25599,7 @@
    * @symb R.useWith(f, [g, h])(a, b) = f(g(a), h(b))
    */
 
-  var useWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function useWith(fn, transformers) {
+  var useWith$1 = /*#__PURE__*/_curry2$1(function useWith(fn, transformers) {
     return curryN$1(transformers.length, function () {
       var args = [];
       var idx = 0;
@@ -26267,9 +25633,7 @@
    *      R.project(['name', 'grade'], kids); //=> [{name: 'Abby', grade: 2}, {name: 'Fred', grade: 7}]
    */
 
-  var project$1 =
-  /*#__PURE__*/
-  useWith$1(_map$1, [pickAll$1, identity$1]); // passing `identity` gives correct arity
+  var project$1 = /*#__PURE__*/useWith$1(_map$1, [pickAll$1, identity$1]); // passing `identity` gives correct arity
 
   /**
    * Returns `true` if the specified object property is equal, in
@@ -26297,9 +25661,7 @@
    *      R.filter(hasBrownHair, kids); //=> [fred, rusty]
    */
 
-  var propEq$1 =
-  /*#__PURE__*/
-  _curry3$1(function propEq(name, val, obj) {
+  var propEq$1 = /*#__PURE__*/_curry3$1(function propEq(name, val, obj) {
     return equals$1(val, obj[name]);
   });
 
@@ -26324,9 +25686,7 @@
    *      R.propIs(Number, 'x', {});            //=> false
    */
 
-  var propIs$1 =
-  /*#__PURE__*/
-  _curry3$1(function propIs(type, name, obj) {
+  var propIs$1 = /*#__PURE__*/_curry3$1(function propIs(type, name, obj) {
     return is$1(type, obj[name]);
   });
 
@@ -26357,9 +25717,7 @@
    *      favoriteWithDefault(alice);  //=> 'Ramda'
    */
 
-  var propOr$1 =
-  /*#__PURE__*/
-  _curry3$1(function propOr(val, p, obj) {
+  var propOr$1 = /*#__PURE__*/_curry3$1(function propOr(val, p, obj) {
     return pathOr$1(val, [p], obj);
   });
 
@@ -26383,9 +25741,7 @@
    *      R.propSatisfies(x => x > 0, 'x', {x: 1, y: 2}); //=> true
    */
 
-  var propSatisfies$1 =
-  /*#__PURE__*/
-  _curry3$1(function propSatisfies(pred, name, obj) {
+  var propSatisfies$1 = /*#__PURE__*/_curry3$1(function propSatisfies(pred, name, obj) {
     return pred(obj[name]);
   });
 
@@ -26410,9 +25766,7 @@
    *      fullName({last: 'Bullet-Tooth', age: 33, first: 'Tony'}); //=> 'Tony Bullet-Tooth'
    */
 
-  var props$1 =
-  /*#__PURE__*/
-  _curry2$1(function props(ps, obj) {
+  var props$1 = /*#__PURE__*/_curry2$1(function props(ps, obj) {
     return ps.map(function (p) {
       return path$3([p], obj);
     });
@@ -26435,9 +25789,7 @@
    *      R.range(50, 53);  //=> [50, 51, 52]
    */
 
-  var range$1 =
-  /*#__PURE__*/
-  _curry2$1(function range(from, to) {
+  var range$1 = /*#__PURE__*/_curry2$1(function range(from, to) {
     if (!(_isNumber$1(from) && _isNumber$1(to))) {
       throw new TypeError('Both arguments to range must be numbers');
     }
@@ -26496,9 +25848,7 @@
    * @symb R.reduceRight(f, a, [b, c, d]) = f(b, f(c, f(d, a)))
    */
 
-  var reduceRight$1 =
-  /*#__PURE__*/
-  _curry3$1(function reduceRight(fn, acc, list) {
+  var reduceRight$1 = /*#__PURE__*/_curry3$1(function reduceRight(fn, acc, list) {
     var idx = list.length - 1;
 
     while (idx >= 0) {
@@ -26539,9 +25889,7 @@
    *      R.reduceWhile(isOdd, R.add, 111, ys); //=> 111
    */
 
-  var reduceWhile$1 =
-  /*#__PURE__*/
-  _curryN$1(4, [], function _reduceWhile(pred, fn, a, list) {
+  var reduceWhile$1 = /*#__PURE__*/_curryN$1(4, [], function _reduceWhile(pred, fn, a, list) {
     return _reduce$1(function (acc, x) {
       return pred(acc, x) ? fn(acc, x) : _reduced$1(acc);
     }, a, list);
@@ -26573,9 +25921,7 @@
    *       [1, 2, 3, 4, 5]) // [1, 2, 3]
    */
 
-  var reduced$1 =
-  /*#__PURE__*/
-  _curry1$1(_reduced$1);
+  var reduced$1 = /*#__PURE__*/_curry1$1(_reduced$1);
 
   /**
    * Calls an input function `n` times, returning an array containing the results
@@ -26601,9 +25947,7 @@
    * @symb R.times(f, 2) = [f(0), f(1)]
    */
 
-  var times$1 =
-  /*#__PURE__*/
-  _curry2$1(function times(fn, n) {
+  var times$1 = /*#__PURE__*/_curry2$1(function times(fn, n) {
     var len = Number(n);
     var idx = 0;
     var list;
@@ -26646,9 +25990,7 @@
    * @symb R.repeat(a, 2) = [a, a]
    */
 
-  var repeat$1 =
-  /*#__PURE__*/
-  _curry2$1(function repeat(value, n) {
+  var repeat$1 = /*#__PURE__*/_curry2$1(function repeat(value, n) {
     return times$1(always$1(value), n);
   });
 
@@ -26677,9 +26019,7 @@
    *      R.replace(/foo/g, 'bar', 'foo foo foo'); //=> 'bar bar bar'
    */
 
-  var replace$2 =
-  /*#__PURE__*/
-  _curry3$1(function replace(regex, replacement, str) {
+  var replace$2 = /*#__PURE__*/_curry3$1(function replace(regex, replacement, str) {
     return str.replace(regex, replacement);
   });
 
@@ -26705,9 +26045,7 @@
    * @symb R.scan(f, a, [b, c]) = [a, f(a, b), f(f(a, b), c)]
    */
 
-  var scan$1 =
-  /*#__PURE__*/
-  _curry3$1(function scan(fn, acc, list) {
+  var scan$1 = /*#__PURE__*/_curry3$1(function scan(fn, acc, list) {
     var idx = 0;
     var len = list.length;
     var result = [acc];
@@ -26746,9 +26084,7 @@
    *      R.sequence(R.of, Nothing());       //=> [Nothing()]
    */
 
-  var sequence$1 =
-  /*#__PURE__*/
-  _curry2$1(function sequence(of, traversable) {
+  var sequence$1 = /*#__PURE__*/_curry2$1(function sequence(of, traversable) {
     return typeof traversable.sequence === 'function' ? traversable.sequence(of) : reduceRight$1(function (x, acc) {
       return ap$1(map$1(prepend$1, x), acc);
     }, of([]), traversable);
@@ -26777,9 +26113,7 @@
    *      R.set(xLens, 8, {x: 1, y: 2});  //=> {x: 8, y: 2}
    */
 
-  var set$7 =
-  /*#__PURE__*/
-  _curry3$1(function set(lens, v, x) {
+  var set$7 = /*#__PURE__*/_curry3$1(function set(lens, v, x) {
     return over$1(lens, always$1(v), x);
   });
 
@@ -26804,9 +26138,7 @@
    *      R.sort(diff, [4,2,7,5]); //=> [2, 4, 5, 7]
    */
 
-  var sort$1 =
-  /*#__PURE__*/
-  _curry2$1(function sort(comparator, list) {
+  var sort$1 = /*#__PURE__*/_curry2$1(function sort(comparator, list) {
     return Array.prototype.slice.call(list, 0).sort(comparator);
   });
 
@@ -26844,9 +26176,7 @@
    *      sortByNameCaseInsensitive(people); //=> [alice, bob, clara]
    */
 
-  var sortBy$1 =
-  /*#__PURE__*/
-  _curry2$1(function sortBy(fn, list) {
+  var sortBy$1 = /*#__PURE__*/_curry2$1(function sortBy(fn, list) {
     return Array.prototype.slice.call(list, 0).sort(function (a, b) {
       var aa = fn(a);
       var bb = fn(b);
@@ -26887,9 +26217,7 @@
    *      ageNameSort(people); //=> [alice, clara, bob]
    */
 
-  var sortWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function sortWith(fns, list) {
+  var sortWith$1 = /*#__PURE__*/_curry2$1(function sortWith(fns, list) {
     return Array.prototype.slice.call(list, 0).sort(function (a, b) {
       var result = 0;
       var i = 0;
@@ -26924,9 +26252,7 @@
    *      R.split('.', 'a.b.c.xyz.d'); //=> ['a', 'b', 'c', 'xyz', 'd']
    */
 
-  var split$3 =
-  /*#__PURE__*/
-  invoker$1(1, 'split');
+  var split$3 = /*#__PURE__*/invoker$1(1, 'split');
 
   /**
    * Splits a given list or string at a given index.
@@ -26947,9 +26273,7 @@
    *      R.splitAt(-1, 'foobar');          //=> ['fooba', 'r']
    */
 
-  var splitAt$1 =
-  /*#__PURE__*/
-  _curry2$1(function splitAt(index, array) {
+  var splitAt$1 = /*#__PURE__*/_curry2$1(function splitAt(index, array) {
     return [slice$3(0, index, array), slice$3(index, length$1(array), array)];
   });
 
@@ -26971,9 +26295,7 @@
    *      R.splitEvery(3, 'foobarbaz'); //=> ['foo', 'bar', 'baz']
    */
 
-  var splitEvery$1 =
-  /*#__PURE__*/
-  _curry2$1(function splitEvery(n, list) {
+  var splitEvery$1 = /*#__PURE__*/_curry2$1(function splitEvery(n, list) {
     if (n <= 0) {
       throw new Error('First argument to splitEvery must be a positive integer');
     }
@@ -27008,9 +26330,7 @@
    *      R.splitWhen(R.equals(2), [1, 2, 3, 1, 2, 3]);   //=> [[1], [2, 3, 1, 2, 3]]
    */
 
-  var splitWhen$1 =
-  /*#__PURE__*/
-  _curry2$1(function splitWhen(pred, list) {
+  var splitWhen$1 = /*#__PURE__*/_curry2$1(function splitWhen(pred, list) {
     var idx = 0;
     var len = list.length;
     var prefix = [];
@@ -27046,9 +26366,7 @@
    *      R.startsWith(['b'], ['a', 'b', 'c'])    //=> false
    */
 
-  var startsWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function (prefix, list) {
+  var startsWith$1 = /*#__PURE__*/_curry2$1(function (prefix, list) {
     return equals$1(take$1(prefix.length, list), prefix);
   });
 
@@ -27076,9 +26394,7 @@
    *      complementaryAngle(72); //=> 18
    */
 
-  var subtract$1 =
-  /*#__PURE__*/
-  _curry2$1(function subtract(a, b) {
+  var subtract$1 = /*#__PURE__*/_curry2$1(function subtract(a, b) {
     return Number(a) - Number(b);
   });
 
@@ -27101,9 +26417,7 @@
    *      R.symmetricDifference([7,6,5,4,3], [1,2,3,4]); //=> [7,6,5,1,2]
    */
 
-  var symmetricDifference$1 =
-  /*#__PURE__*/
-  _curry2$1(function symmetricDifference(list1, list2) {
+  var symmetricDifference$1 = /*#__PURE__*/_curry2$1(function symmetricDifference(list1, list2) {
     return concat$1(difference$1(list1, list2), difference$1(list2, list1));
   });
 
@@ -27130,9 +26444,7 @@
    *      R.symmetricDifferenceWith(eqA, l1, l2); //=> [{a: 1}, {a: 2}, {a: 5}, {a: 6}]
    */
 
-  var symmetricDifferenceWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function symmetricDifferenceWith(pred, list1, list2) {
+  var symmetricDifferenceWith$1 = /*#__PURE__*/_curry3$1(function symmetricDifferenceWith(pred, list1, list2) {
     return concat$1(differenceWith$1(pred, list1, list2), differenceWith$1(pred, list2, list1));
   });
 
@@ -27162,9 +26474,7 @@
    *      R.takeLastWhile(x => x !== 'R' , 'Ramda'); //=> 'amda'
    */
 
-  var takeLastWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(function takeLastWhile(fn, xs) {
+  var takeLastWhile$1 = /*#__PURE__*/_curry2$1(function takeLastWhile(fn, xs) {
     var idx = xs.length - 1;
 
     while (idx >= 0 && fn(xs[idx])) {
@@ -27174,9 +26484,7 @@
     return slice$3(idx + 1, Infinity, xs);
   });
 
-  var XTakeWhile$1 =
-  /*#__PURE__*/
-  function () {
+  var XTakeWhile$1 = /*#__PURE__*/function () {
     function XTakeWhile(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -27192,9 +26500,7 @@
     return XTakeWhile;
   }();
 
-  var _xtakeWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xtakeWhile(f, xf) {
+  var _xtakeWhile$1 = /*#__PURE__*/_curry2$1(function _xtakeWhile(f, xf) {
     return new XTakeWhile$1(f, xf);
   });
 
@@ -27228,11 +26534,7 @@
    *      R.takeWhile(x => x !== 'd' , 'Ramda'); //=> 'Ram'
    */
 
-  var takeWhile$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1(['takeWhile'], _xtakeWhile$1, function takeWhile(fn, xs) {
+  var takeWhile$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1(['takeWhile'], _xtakeWhile$1, function takeWhile(fn, xs) {
     var idx = 0;
     var len = xs.length;
 
@@ -27243,9 +26545,7 @@
     return slice$3(0, idx, xs);
   }));
 
-  var XTap$1 =
-  /*#__PURE__*/
-  function () {
+  var XTap$1 = /*#__PURE__*/function () {
     function XTap(f, xf) {
       this.xf = xf;
       this.f = f;
@@ -27262,9 +26562,7 @@
     return XTap;
   }();
 
-  var _xtap$1 =
-  /*#__PURE__*/
-  _curry2$1(function _xtap(f, xf) {
+  var _xtap$1 = /*#__PURE__*/_curry2$1(function _xtap(f, xf) {
     return new XTap$1(f, xf);
   });
 
@@ -27289,11 +26587,7 @@
    * @symb R.tap(f, a) = a
    */
 
-  var tap$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  _dispatchable$1([], _xtap$1, function tap(fn, x) {
+  var tap$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/_dispatchable$1([], _xtap$1, function tap(fn, x) {
     fn(x);
     return x;
   }));
@@ -27320,9 +26614,7 @@
    *      R.test(/^y/, 'xyz'); //=> false
    */
 
-  var test$7 =
-  /*#__PURE__*/
-  _curry2$1(function test(pattern, str) {
+  var test$7 = /*#__PURE__*/_curry2$1(function test(pattern, str) {
     if (!_isRegExp$1(pattern)) {
       throw new TypeError('‘test’ requires a value of type RegExp as its first argument; received ' + toString$7(pattern));
     }
@@ -27357,9 +26649,7 @@
    *      );
    */
 
-  var andThen$1 =
-  /*#__PURE__*/
-  _curry2$1(function andThen(f, p) {
+  var andThen$1 = /*#__PURE__*/_curry2$1(function andThen(f, p) {
     _assertPromise$1('andThen', p);
 
     return p.then(f);
@@ -27381,9 +26671,7 @@
    *      R.toLower('XYZ'); //=> 'xyz'
    */
 
-  var toLower$1 =
-  /*#__PURE__*/
-  invoker$1(0, 'toLowerCase');
+  var toLower$1 = /*#__PURE__*/invoker$1(0, 'toLowerCase');
 
   /**
    * Converts an object into an array of key, value arrays. Only the object's
@@ -27404,9 +26692,7 @@
    *      R.toPairs({a: 1, b: 2, c: 3}); //=> [['a', 1], ['b', 2], ['c', 3]]
    */
 
-  var toPairs$1 =
-  /*#__PURE__*/
-  _curry1$1(function toPairs(obj) {
+  var toPairs$1 = /*#__PURE__*/_curry1$1(function toPairs(obj) {
     var pairs = [];
 
     for (var prop in obj) {
@@ -27440,9 +26726,7 @@
    *      R.toPairsIn(f); //=> [['x','X'], ['y','Y']]
    */
 
-  var toPairsIn$1 =
-  /*#__PURE__*/
-  _curry1$1(function toPairsIn(obj) {
+  var toPairsIn$1 = /*#__PURE__*/_curry1$1(function toPairsIn(obj) {
     var pairs = [];
 
     for (var prop in obj) {
@@ -27468,9 +26752,7 @@
    *      R.toUpper('abc'); //=> 'ABC'
    */
 
-  var toUpper$1 =
-  /*#__PURE__*/
-  invoker$1(0, 'toUpperCase');
+  var toUpper$1 = /*#__PURE__*/invoker$1(0, 'toUpperCase');
 
   /**
    * Initializes a transducer using supplied iterator function. Returns a single
@@ -27520,9 +26802,7 @@
    *      R.transduce(firstOddTransducer, R.flip(R.append), [], R.range(0, 100)); //=> [1]
    */
 
-  var transduce$1 =
-  /*#__PURE__*/
-  curryN$1(4, function transduce(xf, fn, acc, list) {
+  var transduce$1 = /*#__PURE__*/curryN$1(4, function transduce(xf, fn, acc, list) {
     return _reduce$1(xf(typeof fn === 'function' ? _xwrap$1(fn) : fn), acc, list);
   });
 
@@ -27551,9 +26831,7 @@
    * @symb R.transpose([[a, b], [c]]) = [[a, c], [b]]
    */
 
-  var transpose$1 =
-  /*#__PURE__*/
-  _curry1$1(function transpose(outerlist) {
+  var transpose$1 = /*#__PURE__*/_curry1$1(function transpose(outerlist) {
     var i = 0;
     var result = [];
 
@@ -27603,9 +26881,7 @@
    *      R.traverse(Maybe.of, safeDiv(10), [2, 0, 5]); //=> Maybe.Nothing
    */
 
-  var traverse$1 =
-  /*#__PURE__*/
-  _curry3$1(function traverse(of, f, traversable) {
+  var traverse$1 = /*#__PURE__*/_curry3$1(function traverse(of, f, traversable) {
     return typeof traversable['fantasy-land/traverse'] === 'function' ? traversable['fantasy-land/traverse'](f, of) : sequence$1(of, map$1(f, traversable));
   });
 
@@ -27628,19 +26904,11 @@
    *      R.map(R.trim, R.split(',', 'x, y, z')); //=> ['x', 'y', 'z']
    */
 
-  var trim$4 = !hasProtoTrim$1 ||
-  /*#__PURE__*/
-  ws$1.trim() || !
-  /*#__PURE__*/
-  zeroWidth$1.trim() ?
-  /*#__PURE__*/
-  _curry1$1(function trim(str) {
+  var trim$4 = !hasProtoTrim$1 || /*#__PURE__*/ws$1.trim() || ! /*#__PURE__*/zeroWidth$1.trim() ? /*#__PURE__*/_curry1$1(function trim(str) {
     var beginRx = new RegExp('^[' + ws$1 + '][' + ws$1 + ']*');
     var endRx = new RegExp('[' + ws$1 + '][' + ws$1 + ']*$');
     return str.replace(beginRx, '').replace(endRx, '');
-  }) :
-  /*#__PURE__*/
-  _curry1$1(function trim(str) {
+  }) : /*#__PURE__*/_curry1$1(function trim(str) {
     return str.trim();
   });
 
@@ -27668,9 +26936,7 @@
    *      R.tryCatch(() => { throw 'this is not a valid value'}, (err, value)=>({error : err,  value }))('bar') // => {'error': 'this is not a valid value', 'value': 'bar'}
    */
 
-  var tryCatch$1 =
-  /*#__PURE__*/
-  _curry2$1(function _tryCatch(tryer, catcher) {
+  var tryCatch$1 = /*#__PURE__*/_curry2$1(function _tryCatch(tryer, catcher) {
     return _arity$1(tryer.length, function () {
       try {
         return tryer.apply(this, arguments);
@@ -27705,9 +26971,7 @@
    * @symb R.unapply(f)(a, b) = f([a, b])
    */
 
-  var unapply$1 =
-  /*#__PURE__*/
-  _curry1$1(function unapply(fn) {
+  var unapply$1 = /*#__PURE__*/_curry1$1(function unapply(fn) {
     return function () {
       return fn(Array.prototype.slice.call(arguments, 0));
     };
@@ -27742,9 +27006,7 @@
    * @symb R.unary(f)(a, b, c) = f(a)
    */
 
-  var unary$1 =
-  /*#__PURE__*/
-  _curry1$1(function unary(fn) {
+  var unary$1 = /*#__PURE__*/_curry1$1(function unary(fn) {
     return nAry$1(1, fn);
   });
 
@@ -27768,9 +27030,7 @@
    *      uncurriedAddFour(1, 2, 3, 4); //=> 10
    */
 
-  var uncurryN$1 =
-  /*#__PURE__*/
-  _curry2$1(function uncurryN(depth, fn) {
+  var uncurryN$1 = /*#__PURE__*/_curry2$1(function uncurryN(depth, fn) {
     return curryN$1(depth, function () {
       var currentDepth = 1;
       var value = fn;
@@ -27814,9 +27074,7 @@
    * @symb R.unfold(f, x) = [f(x)[0], f(f(x)[1])[0], f(f(f(x)[1])[1])[0], ...]
    */
 
-  var unfold$1 =
-  /*#__PURE__*/
-  _curry2$1(function unfold(fn, seed) {
+  var unfold$1 = /*#__PURE__*/_curry2$1(function unfold(fn, seed) {
     var pair = fn(seed);
     var result = [];
 
@@ -27846,11 +27104,7 @@
    *      R.union([1, 2, 3], [2, 3, 4]); //=> [1, 2, 3, 4]
    */
 
-  var union$1 =
-  /*#__PURE__*/
-  _curry2$1(
-  /*#__PURE__*/
-  compose$1(uniq$1, _concat$1));
+  var union$1 = /*#__PURE__*/_curry2$1( /*#__PURE__*/compose$1(uniq$1, _concat$1));
 
   /**
    * Returns a new list containing only one copy of each element in the original
@@ -27875,9 +27129,7 @@
    *      R.uniqWith(strEq)(['1', 1, 1]);    //=> ['1']
    */
 
-  var uniqWith$1 =
-  /*#__PURE__*/
-  _curry2$1(function uniqWith(pred, list) {
+  var uniqWith$1 = /*#__PURE__*/_curry2$1(function uniqWith(pred, list) {
     var idx = 0;
     var len = list.length;
     var result = [];
@@ -27919,9 +27171,7 @@
    *      R.unionWith(R.eqBy(R.prop('a')), l1, l2); //=> [{a: 1}, {a: 2}, {a: 4}]
    */
 
-  var unionWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function unionWith(pred, list1, list2) {
+  var unionWith$1 = /*#__PURE__*/_curry3$1(function unionWith(pred, list1, list2) {
     return uniqWith$1(pred, _concat$1(list1, list2));
   });
 
@@ -27950,9 +27200,7 @@
    *      safeInc(1); //=> 2
    */
 
-  var unless$1 =
-  /*#__PURE__*/
-  _curry3$1(function unless(pred, whenFalseFn, x) {
+  var unless$1 = /*#__PURE__*/_curry3$1(function unless(pred, whenFalseFn, x) {
     return pred(x) ? x : whenFalseFn(x);
   });
 
@@ -27974,9 +27222,7 @@
    *      R.unnest([[1, 2], [3, 4], [5, 6]]); //=> [1, 2, 3, 4, 5, 6]
    */
 
-  var unnest$1 =
-  /*#__PURE__*/
-  chain$1(_identity$1);
+  var unnest$1 = /*#__PURE__*/chain$1(_identity$1);
 
   /**
    * Takes a predicate, a transformation function, and an initial value,
@@ -27998,9 +27244,7 @@
    *      R.until(R.gt(R.__, 100), R.multiply(2))(1) // => 128
    */
 
-  var until$1 =
-  /*#__PURE__*/
-  _curry3$1(function until(pred, fn, init) {
+  var until$1 = /*#__PURE__*/_curry3$1(function until(pred, fn, init) {
     var val = init;
 
     while (!pred(val)) {
@@ -28032,9 +27276,7 @@
    *      R.valuesIn(f); //=> ['X', 'Y']
    */
 
-  var valuesIn$1 =
-  /*#__PURE__*/
-  _curry1$1(function valuesIn(obj) {
+  var valuesIn$1 = /*#__PURE__*/_curry1$1(function valuesIn(obj) {
     var prop;
     var vs = [];
 
@@ -28076,9 +27318,7 @@
    */
 
 
-  var view$1 =
-  /*#__PURE__*/
-  _curry2$1(function view(lens, x) {
+  var view$1 = /*#__PURE__*/_curry2$1(function view(lens, x) {
     // Using `Const` effectively ignores the setter function of the `lens`,
     // leaving the value returned by the getter function unmodified.
     return lens(Const$1)(x).value;
@@ -28113,9 +27353,7 @@
    *      truncate('0123456789ABC'); //=> '0123456789…'
    */
 
-  var when$1 =
-  /*#__PURE__*/
-  _curry3$1(function when(pred, whenTrueFn, x) {
+  var when$1 = /*#__PURE__*/_curry3$1(function when(pred, whenTrueFn, x) {
     return pred(x) ? whenTrueFn(x) : x;
   });
 
@@ -28155,9 +27393,7 @@
    *      pred({a: 'foo', b: 'xxx', x: 11, y: 20}); //=> false
    */
 
-  var where$1 =
-  /*#__PURE__*/
-  _curry2$1(function where(spec, testObj) {
+  var where$1 = /*#__PURE__*/_curry2$1(function where(spec, testObj) {
     for (var prop in spec) {
       if (_has$1(prop, spec) && !spec[prop](testObj[prop])) {
         return false;
@@ -28196,9 +27432,7 @@
    *      pred({a: 1, b: 1});        //=> false
    */
 
-  var whereEq$1 =
-  /*#__PURE__*/
-  _curry2$1(function whereEq(spec, testObj) {
+  var whereEq$1 = /*#__PURE__*/_curry2$1(function whereEq(spec, testObj) {
     return where$1(map$1(equals$1, spec), testObj);
   });
 
@@ -28222,9 +27456,7 @@
    *      R.without([1, 2], [1, 2, 1, 3, 4]); //=> [3, 4]
    */
 
-  var without$1 =
-  /*#__PURE__*/
-  _curry2$1(function (xs, list) {
+  var without$1 = /*#__PURE__*/_curry2$1(function (xs, list) {
     return reject$1(flip$1(_includes$1)(xs), list);
   });
 
@@ -28250,9 +27482,7 @@
    *      R.xor(false, false); //=> false
    */
 
-  var xor$1 =
-  /*#__PURE__*/
-  _curry2$1(function xor(a, b) {
+  var xor$1 = /*#__PURE__*/_curry2$1(function xor(a, b) {
     return Boolean(!a ^ !b);
   });
 
@@ -28275,9 +27505,7 @@
    * @symb R.xprod([a, b], [c, d]) = [[a, c], [a, d], [b, c], [b, d]]
    */
 
-  var xprod$1 =
-  /*#__PURE__*/
-  _curry2$1(function xprod(a, b) {
+  var xprod$1 = /*#__PURE__*/_curry2$1(function xprod(a, b) {
     // = xprodWith(prepend); (takes about 3 times as long...)
     var idx = 0;
     var ilen = a.length;
@@ -28319,9 +27547,7 @@
    * @symb R.zip([a, b, c], [d, e, f]) = [[a, d], [b, e], [c, f]]
    */
 
-  var zip$1 =
-  /*#__PURE__*/
-  _curry2$1(function zip(a, b) {
+  var zip$1 = /*#__PURE__*/_curry2$1(function zip(a, b) {
     var rv = [];
     var idx = 0;
     var len = Math.min(a.length, b.length);
@@ -28352,9 +27578,7 @@
    *      R.zipObj(['a', 'b', 'c'], [1, 2, 3]); //=> {a: 1, b: 2, c: 3}
    */
 
-  var zipObj$1 =
-  /*#__PURE__*/
-  _curry2$1(function zipObj(keys, values) {
+  var zipObj$1 = /*#__PURE__*/_curry2$1(function zipObj(keys, values) {
     var idx = 0;
     var len = Math.min(keys.length, values.length);
     var out = {};
@@ -28392,9 +27616,7 @@
    * @symb R.zipWith(fn, [a, b, c], [d, e, f]) = [fn(a, d), fn(b, e), fn(c, f)]
    */
 
-  var zipWith$1 =
-  /*#__PURE__*/
-  _curry3$1(function zipWith(fn, a, b) {
+  var zipWith$1 = /*#__PURE__*/_curry3$1(function zipWith(fn, a, b) {
     var rv = [];
     var idx = 0;
     var len = Math.min(a.length, b.length);
@@ -28426,9 +27648,7 @@
    *      R.thunkify((a, b) => a + b)(25, 17)(); //=> 42
    */
 
-  var thunkify$1 =
-  /*#__PURE__*/
-  _curry1$1(function thunkify(fn) {
+  var thunkify$1 = /*#__PURE__*/_curry1$1(function thunkify(fn) {
     return curryN$1(fn.length, function createThunk() {
       var fnArgs = arguments;
       return function invokeThunk() {
@@ -33287,12 +32507,6 @@
     createNonEnumerableProperty$1(DatePrototype$4, TO_PRIMITIVE$2, dateToPrimitive);
   }
 
-  // `Object.defineProperties` method
-  // https://tc39.github.io/ecma262/#sec-object.defineproperties
-  _export$1({ target: 'Object', stat: true, forced: !descriptors$1, sham: !descriptors$1 }, {
-    defineProperties: objectDefineProperties$1
-  });
-
   // @@search logic
   fixRegexpWellKnownSymbolLogic$1('search', 1, function (SEARCH, nativeSearch, maybeCallNative) {
     return [
@@ -34940,7 +34154,7 @@
     }
   })(typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : typeof window !== 'undefined' ? window : commonjsGlobal);
 
-  var ramda = ( es && undefined ) || es;
+  var ramda = getCjsExportFromNamespace(es);
 
   var cubejsClientCore = createCommonjsModule(function (module, exports) {
 
@@ -34956,7 +34170,7 @@
 
     var _asyncToGenerator$$1 = _interopDefault(asyncToGenerator);
 
-    var _objectSpread2 = _interopDefault(objectSpread);
+    var _defineProperty$$1 = _interopDefault(defineProperty$g);
 
     var _typeof$$1 = _interopDefault(_typeof_1);
 
@@ -34968,8 +34182,6 @@
 
     var _toConsumableArray$$1 = _interopDefault(toConsumableArray);
 
-    var _defineProperty$$1 = _interopDefault(defineProperty$g);
-
     var _objectWithoutProperties$$1 = _interopDefault(objectWithoutProperties);
 
     var _slicedToArray$$1 = _interopDefault(slicedToArray);
@@ -34979,79 +34191,40 @@
     var momentRange$$1 = _interopDefault(momentRange);
 
     var fetch = _interopDefault(browserPonyfill);
-    /**
-     * Configuration object that contains information about pivot axes and other options.
-     *
-     * Let's apply `pivotConfig` and see how it affects the axes
-     * ```js
-     * // Example query
-     * {
-     *   measures: ['Orders.count'],
-     *   dimensions: ['Users.country', 'Users.gender']
-     * }
-     * ```
-     * If we put the `Users.gender` dimension on **y** axis
-     * ```js
-     * resultSet.tablePivot({
-     *   x: ['Users.country'],
-     *   y: ['Users.gender', 'measures']
-     * })
-     * ```
-     *
-     * The resulting table will look the following way
-     *
-     * | Users Country | male, Orders.count | female, Orders.count |
-     * | ------------- | ------------------ | -------------------- |
-     * | Australia     | 3                  | 27                   |
-     * | Germany       | 10                 | 12                   |
-     * | US            | 5                  | 7                    |
-     *
-     * Now let's put the `Users.country` dimension on **y** axis instead
-     * ```js
-     * resultSet.tablePivot({
-     *   x: ['Users.gender'],
-     *   y: ['Users.country', 'measures'],
-     * });
-     * ```
-     *
-     * in this case the `Users.country` values will be laid out on **y** or **columns** axis
-     *
-     * | Users Gender | Australia, Orders.count | Germany, Orders.count | US, Orders.count |
-     * | ------------ | ----------------------- | --------------------- | ---------------- |
-     * | male         | 3                       | 10                    | 5                |
-     * | female       | 27                      | 12                    | 7                |
-     *
-     * It's also possible to put the `measures` on **x** axis.
-     * But in either case it should always be the last item of the array.
-     * ```js
-     * resultSet.tablePivot({
-     *   x: ['Users.gender', 'measures'],
-     *   y: ['Users.country'],
-     * });
-     * ```
-     *
-     * | Users Gender | measures     | Australia | Germany | US  |
-     * | ------------ | ------------ | --------- | ------- | --- |
-     * | male         | Orders.count | 3         | 10      | 5   |
-     * | female       | Orders.count | 27        | 12      | 7   |
-     *
-     * @memberof ResultSet
-     * @typedef {Object} PivotConfig Configuration object that contains the information about pivot axes and other options
-     * @property {Array<string>} x Dimensions to put on **x** or **rows** axis.
-     * Put `measures` at the end of array here
-     * @property {Array<string>} y Dimensions to put on **y** or **columns** axis.
-     * @property {Boolean} [fillMissingDates=true] If `true` missing dates on the time dimensions
-     * will be filled with `0` for all measures.
-     * Note: the `fillMissingDates` option set to `true` will override any **order** applied to the query
-     */
 
-    /**
-     * @memberof ResultSet
-     * @typedef {Object} DrillDownLocator
-     * @property {Array<string>} xValues
-     * @property {Array<string>} yValues
-     */
+    function ownKeys(object, enumerableOnly) {
+      var keys = Object.keys(object);
 
+      if (Object.getOwnPropertySymbols) {
+        var symbols = Object.getOwnPropertySymbols(object);
+        if (enumerableOnly) symbols = symbols.filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+        });
+        keys.push.apply(keys, symbols);
+      }
+
+      return keys;
+    }
+
+    function _objectSpread$$1(target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i] != null ? arguments[i] : {};
+
+        if (i % 2) {
+          ownKeys(Object(source), true).forEach(function (key) {
+            _defineProperty$$1(target, key, source[key]);
+          });
+        } else if (Object.getOwnPropertyDescriptors) {
+          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+        } else {
+          ownKeys(Object(source)).forEach(function (key) {
+            Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+          });
+        }
+      }
+
+      return target;
+    }
 
     var moment$$1 = momentRange$$1.extendMoment(Moment);
     var TIME_SERIES = {
@@ -35093,13 +34266,8 @@
     };
     var DateRegex = /^\d\d\d\d-\d\d-\d\d$/;
     var LocalDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z?$/;
-    /**
-     * Provides a convenient interface for data manipulation.
-     */
 
-    var ResultSet =
-    /*#__PURE__*/
-    function () {
+    var ResultSet = /*#__PURE__*/function () {
       function ResultSet(loadResponse, options) {
         _classCallCheck$$1(this, ResultSet);
 
@@ -35107,50 +34275,6 @@
         this.loadResponse = loadResponse;
         this.parseDateMeasures = options.parseDateMeasures;
       }
-      /**
-       * Returns a measure drill down query.
-       *
-       * Provided you have a measure with the defined `drillMemebers` on the `Orders` cube
-       * ```js
-       * measures: {
-       *   count: {
-       *     type: `count`,
-       *     drillMembers: [Orders.status, Users.city, count],
-       *   },
-       *   // ...
-       * }
-       * ```
-       *
-       * Then you can use the `drillDown` method to see the rows that contribute to that metric
-       * ```js
-       * resultSet.drillDown(
-       *   {
-       *     xValues,
-       *     yValues,
-       *   },
-       *   // you should pass the `pivotConfig` if you have used it for axes manipulation
-       *   pivotConfig
-       * )
-       * ```
-       *
-       * the result will be a query with the required filters applied and the dimensions/measures filled out
-       * ```js
-       * {
-       *   measures: ['Orders.count'],
-       *   dimensions: ['Orders.status', 'Users.city'],
-       *   filters: [
-       *     // dimension and measure filters
-       *   ],
-       *   timeDimensions: [
-       *     //...
-       *   ]
-       * }
-       * ```
-       * @param {DrillDownLocator} drillDownLocator
-       * @param {PivotConfig} [pivotConfig]
-       * @returns {Object|null} Drill down query
-       */
-
 
       _createClass$$1(ResultSet, [{
         key: "drillDown",
@@ -35227,42 +34351,11 @@
               });
             }
           });
-          return _objectSpread2({}, measures[measureName].drillMembersGrouped, {
+          return _objectSpread$$1(_objectSpread$$1({}, measures[measureName].drillMembersGrouped), {}, {
             filters: filters,
             timeDimensions: timeDimensions
           });
         }
-        /**
-         * Returns an array of series with key, title and series data.
-         * ```js
-         * // For the query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-12-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.series() will return
-         * [
-         *   {
-         *     key: 'Stories.count',
-         *     title: 'Stories Count',
-         *     series: [
-         *       { x: '2015-01-01T00:00:00', value: 27120 },
-         *       { x: '2015-02-01T00:00:00', value: 25861 },
-         *       { x: '2015-03-01T00:00:00', value: 29661 },
-         *       //...
-         *     ],
-         *   },
-         * ]
-         * ```
-         * @param {PivotConfig} [pivotConfig]
-         * @returns {Array}
-         */
-
       }, {
         key: "series",
         value: function series(pivotConfig) {
@@ -35374,49 +34467,6 @@
 
           return TIME_SERIES[timeDimension.granularity](padToDay ? range.snapTo('day') : range);
         }
-        /**
-         * Base method for pivoting {@link ResultSet} data.
-         * Most of the times shouldn't be used directly and {@link ResultSet#chartPivot}
-         * or {@link ResultSet#tablePivot} should be used instead.
-         *
-         * You can find the examples of using the `pivotConfig` [here](#pivot-config)
-         * ```js
-         * // For query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-03-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.pivot({ x: ['Stories.time'], y: ['measures'] }) will return
-         * [
-         *   {
-         *     xValues: ["2015-01-01T00:00:00"],
-         *     yValuesArray: [
-         *       [['Stories.count'], 27120]
-         *     ]
-         *   },
-         *   {
-         *     xValues: ["2015-02-01T00:00:00"],
-         *     yValuesArray: [
-         *       [['Stories.count'], 25861]
-         *     ]
-         *   },
-         *   {
-         *     xValues: ["2015-03-01T00:00:00"],
-         *     yValuesArray: [
-         *       [['Stories.count'], 29661]
-         *     ]
-         *   }
-         * ]
-         * ```
-         * @param {PivotConfig} [pivotConfig]
-         * @returns {Array} of pivoted rows.
-         */
-
       }, {
         key: "pivot",
         value: function pivot(pivotConfig) {
@@ -35525,32 +34575,6 @@
           // TODO
           return this.chartPivot(pivotConfig);
         }
-        /**
-         * Returns normalized query result data in the following format.
-         *
-         * You can find the examples of using the `pivotConfig` [here](#pivot-config)
-         * ```js
-         * // For the query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-12-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.chartPivot() will return
-         * [
-         *   { "x":"2015-01-01T00:00:00", "Stories.count": 27120, "xValues": ["2015-01-01T00:00:00"] },
-         *   { "x":"2015-02-01T00:00:00", "Stories.count": 25861, "xValues": ["2015-02-01T00:00:00"]  },
-         *   { "x":"2015-03-01T00:00:00", "Stories.count": 29661, "xValues": ["2015-03-01T00:00:00"]  },
-         *   //...
-         * ]
-         * ```
-         * @param {PivotConfig} [pivotConfig]
-         */
-
       }, {
         key: "chartPivot",
         value: function chartPivot(pivotConfig) {
@@ -35569,7 +34593,7 @@
           return this.pivot(pivotConfig).map(function (_ref23) {
             var xValues = _ref23.xValues,
                 yValuesArray = _ref23.yValuesArray;
-            return _objectSpread2({
+            return _objectSpread$$1({
               category: _this3.axisValuesString(xValues, ', '),
               // TODO deprecated
               x: _this3.axisValuesString(xValues, ', '),
@@ -35585,35 +34609,6 @@
             }, {}));
           });
         }
-        /**
-         * Returns normalized query result data prepared for visualization in the table format.
-         *
-         * You can find the examples of using the `pivotConfig` [here](#pivot-config)
-         *
-         * For example:
-         * ```js
-         * // For the query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-12-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.tablePivot() will return
-         * [
-         *   { "Stories.time": "2015-01-01T00:00:00", "Stories.count": 27120 },
-         *   { "Stories.time": "2015-02-01T00:00:00", "Stories.count": 25861 },
-         *   { "Stories.time": "2015-03-01T00:00:00", "Stories.count": 29661 },
-         *   //...
-         * ]
-         * ```
-         * @param {PivotConfig} [pivotConfig]
-         * @returns {Array} of pivoted rows
-         */
-
       }, {
         key: "tablePivot",
         value: function tablePivot(pivotConfig) {
@@ -35632,103 +34627,6 @@
             }) || []));
           });
         }
-        /**
-         * Returns array of column definitions for `tablePivot`.
-         *
-         * For example:
-         * ```js
-         * // For the query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-12-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.tableColumns() will return
-         * [
-         *   {
-         *     key: 'Stories.time',
-         *     dataIndex: 'Stories.time',
-         *     title: 'Stories Time',
-         *     shortTitle: 'Time',
-         *     type: 'time',
-         *     format: undefined,
-         *   },
-         *   {
-         *     key: 'Stories.count',
-         *     dataIndex: 'Stories.count',
-         *     title: 'Stories Count',
-         *     shortTitle: 'Count',
-         *     type: 'count',
-         *     format: undefined,
-         *   },
-         *   //...
-         * ]
-         * ```
-         *
-         * In case we want to pivot the table axes
-         * ```js
-         * // Let's take this query as an example
-         * {
-         *   measures: ['Orders.count'],
-         *   dimensions: ['Users.country', 'Users.gender']
-         * }
-         *
-         * // and put the dimensions on `y` axis
-         * resultSet.tableColumns({
-         *   x: [],
-         *   y: ['Users.country', 'Users.gender', 'measures']
-         * })
-         * ```
-         *
-         * then `tableColumns` will group the table head and return
-         * ```js
-         * {
-         *   key: 'Germany',
-         *   type: 'string',
-         *   title: 'Users Country Germany',
-         *   shortTitle: 'Germany',
-         *   meta: undefined,
-         *   format: undefined,
-         *   children: [
-         *     {
-         *       key: 'male',
-         *       type: 'string',
-         *       title: 'Users Gender male',
-         *       shortTitle: 'male',
-         *       meta: undefined,
-         *       format: undefined,
-         *       children: [
-         *         {
-         *           // ...
-         *           dataIndex: 'Germany.male.Orders.count',
-         *           shortTitle: 'Count',
-         *         },
-         *       ],
-         *     },
-         *     {
-         *       // ...
-         *       shortTitle: 'female',
-         *       children: [
-         *         {
-         *           // ...
-         *           dataIndex: 'Germany.female.Orders.count',
-         *           shortTitle: 'Count',
-         *         },
-         *       ],
-         *     },
-         *   ],
-         * },
-         * // ...
-         * ```
-         *
-         * @param {PivotConfig} [pivotConfig]
-         * @returns {Array} of columns
-         */
-
       }, {
         key: "tableColumns",
         value: function tableColumns(pivotConfig) {
@@ -35739,7 +34637,7 @@
 
           var extractFields = function extractFields(key) {
             var flatMeta = Object.values(_this4.loadResponse.annotation).reduce(function (a, b) {
-              return _objectSpread2({}, a, {}, b);
+              return _objectSpread$$1(_objectSpread$$1({}, a), b);
             }, {});
 
             var _ref30 = flatMeta[key] || {},
@@ -35799,7 +34697,7 @@
               var dimensionValue = key !== currentItem.memberId ? key : '';
 
               if (!children.length) {
-                return _objectSpread2({}, fields, {
+                return _objectSpread$$1(_objectSpread$$1({}, fields), {}, {
                   key: key,
                   dataIndex: [].concat(_toConsumableArray$$1(path), [key]).join('.'),
                   title: [title, dimensionValue].join(' ').trim(),
@@ -35807,7 +34705,7 @@
                 });
               }
 
-              return _objectSpread2({}, fields, {
+              return _objectSpread$$1(_objectSpread$$1({}, fields), {}, {
                 key: key,
                 title: [title, dimensionValue].join(' ').trim(),
                 shortTitle: dimensionValue || shortTitle,
@@ -35822,7 +34720,7 @@
             return key === 'measures';
           })) {
             measureColumns = (this.query().measures || []).map(function (key) {
-              return _objectSpread2({}, extractFields(key), {
+              return _objectSpread$$1(_objectSpread$$1({}, extractFields(key)), {}, {
                 dataIndex: key
               });
             });
@@ -35839,47 +34737,10 @@
               };
             }
 
-            return _objectSpread2({}, extractFields(key), {
+            return _objectSpread$$1(_objectSpread$$1({}, extractFields(key)), {}, {
               dataIndex: key
             });
           }).concat(toColumns(schema)).concat(measureColumns);
-        }
-      }, {
-        key: "tableColumns2",
-        value: function tableColumns2(pivotConfig) {
-          var _this5 = this;
-
-          var normalizedPivotConfig = this.normalizePivotConfig(pivotConfig);
-
-          var column = function column(field) {
-            var exractFields = function exractFields() {
-              var annotation = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-              var title = annotation.title,
-                  shortTitle = annotation.shortTitle,
-                  format = annotation.format,
-                  type = annotation.type,
-                  meta = annotation.meta;
-              return {
-                title: title,
-                shortTitle: shortTitle,
-                format: format,
-                type: type,
-                meta: meta
-              };
-            };
-
-            return field === 'measures' ? (_this5.query().measures || []).map(function (key) {
-              return _objectSpread2({
-                key: key
-              }, exractFields(_this5.loadResponse.annotation.measures[key]));
-            }) : [_objectSpread2({
-              key: field
-            }, exractFields(_this5.loadResponse.annotation.dimensions[field] || _this5.loadResponse.annotation.timeDimensions[field]))];
-          };
-
-          return normalizedPivotConfig.x.map(column).concat(normalizedPivotConfig.y.map(column)).reduce(function (a, b) {
-            return a.concat(b);
-          });
         }
       }, {
         key: "totalRow",
@@ -35892,44 +34753,18 @@
           // TODO
           return this.chartPivot(pivotConfig);
         }
-        /**
-         * Returns the array of series objects, containing `key` and `title` parameters.
-         * ```js
-         * // For query
-         * {
-         *   measures: ['Stories.count'],
-         *   timeDimensions: [{
-         *     dimension: 'Stories.time',
-         *     dateRange: ['2015-01-01', '2015-12-31'],
-         *     granularity: 'month'
-         *   }]
-         * }
-         *
-         * // ResultSet.seriesNames() will return
-         * [
-         *   {
-         *     key: 'Stories.count',
-         *     title: 'Stories Count',
-         *     yValues: ['Stories.count'],
-         *   },
-         * ]
-         * ```
-         * @param {PivotConfig} [pivotConfig]
-         * @returns {Array} of series names
-         */
-
       }, {
         key: "seriesNames",
         value: function seriesNames(pivotConfig) {
-          var _this6 = this;
+          var _this5 = this;
 
           pivotConfig = this.normalizePivotConfig(pivotConfig);
           return ramda.pipe(ramda.map(this.axisValues(pivotConfig.y)), ramda.unnest, ramda.uniq)(this.timeDimensionBackwardCompatibleData()).map(function (axisValues) {
             return {
-              title: _this6.axisValuesString(pivotConfig.y.find(function (d) {
+              title: _this5.axisValuesString(pivotConfig.y.find(function (d) {
                 return d === 'measures';
-              }) ? ramda.dropLast(1, axisValues).concat(_this6.loadResponse.annotation.measures[ResultSet.measureFromAxis(axisValues)].title) : axisValues, ', '),
-              key: _this6.axisValuesString(axisValues),
+              }) ? ramda.dropLast(1, axisValues).concat(_this5.loadResponse.annotation.measures[ResultSet.measureFromAxis(axisValues)].title) : axisValues, ', '),
+              key: _this5.axisValuesString(axisValues),
               yValues: axisValues
             };
           });
@@ -35953,7 +34788,7 @@
               return !!td.granularity;
             });
             this.backwardCompatibleData = this.loadResponse.data.map(function (row) {
-              return _objectSpread2({}, row, {}, Object.keys(row).filter(function (field) {
+              return _objectSpread$$1(_objectSpread$$1({}, row), Object.keys(row).filter(function (field) {
                 return timeDimensions.find(function (d) {
                   return d.dimension === field;
                 }) && !row[ResultSet.timeDimensionMember(timeDimensions.find(function (d) {
@@ -35964,7 +34799,7 @@
                   return d.dimension === field;
                 })), row[field]);
               }).reduce(function (a, b) {
-                return _objectSpread2({}, a, {}, b);
+                return _objectSpread$$1(_objectSpread$$1({}, a), b);
               }, {}));
             });
           }
@@ -35993,7 +34828,7 @@
             x: dimensions,
             y: []
           });
-          pivotConfig = _objectSpread2({}, pivotConfig, {
+          pivotConfig = _objectSpread$$1(_objectSpread$$1({}, pivotConfig), {}, {
             x: _toConsumableArray$$1(pivotConfig.x || []),
             y: _toConsumableArray$$1(pivotConfig.y || [])
           });
@@ -36057,9 +34892,7 @@
       return ResultSet;
     }();
 
-    var SqlQuery =
-    /*#__PURE__*/
-    function () {
+    var SqlQuery = /*#__PURE__*/function () {
       function SqlQuery(sqlQuery) {
         _classCallCheck$$1(this, SqlQuery);
 
@@ -36137,9 +34970,7 @@
      * Contains information about available cubes and it's members.
      */
 
-    var Meta =
-    /*#__PURE__*/
-    function () {
+    var Meta = /*#__PURE__*/function () {
       function Meta(metaResponse) {
         _classCallCheck$$1(this, Meta);
 
@@ -36247,9 +35078,7 @@
       return Meta;
     }();
 
-    var ProgressResult =
-    /*#__PURE__*/
-    function () {
+    var ProgressResult = /*#__PURE__*/function () {
       function ProgressResult(progressResponse) {
         _classCallCheck$$1(this, ProgressResult);
 
@@ -36270,20 +35099,42 @@
 
       return ProgressResult;
     }();
-    /**
-     * Default transport implementation.
-     */
 
+    function ownKeys$1(object, enumerableOnly) {
+      var keys = Object.keys(object);
 
-    var HttpTransport =
-    /*#__PURE__*/
-    function () {
-      /**
-       * @param {Object} options - mandatory options object
-       * @param options.authorization - [jwt auth token](security)
-       * @param options.apiUrl - path to `/cubejs-api/v1`
-       * @param [options.headers] - object of custom headers
-       */
+      if (Object.getOwnPropertySymbols) {
+        var symbols = Object.getOwnPropertySymbols(object);
+        if (enumerableOnly) symbols = symbols.filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+        });
+        keys.push.apply(keys, symbols);
+      }
+
+      return keys;
+    }
+
+    function _objectSpread$1(target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i] != null ? arguments[i] : {};
+
+        if (i % 2) {
+          ownKeys$1(Object(source), true).forEach(function (key) {
+            _defineProperty$$1(target, key, source[key]);
+          });
+        } else if (Object.getOwnPropertyDescriptors) {
+          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+        } else {
+          ownKeys$1(Object(source)).forEach(function (key) {
+            Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+          });
+        }
+      }
+
+      return target;
+    }
+
+    var HttpTransport = /*#__PURE__*/function () {
       function HttpTransport(_ref) {
         var authorization = _ref.authorization,
             apiUrl = _ref.apiUrl,
@@ -36308,14 +35159,14 @@
           var searchParams = new URLSearchParams(params && Object.keys(params).map(function (k) {
             return _defineProperty$$1({}, k, _typeof$$1(params[k]) === 'object' ? JSON.stringify(params[k]) : params[k]);
           }).reduce(function (a, b) {
-            return _objectSpread2({}, a, {}, b);
+            return _objectSpread$1(_objectSpread$1({}, a), b);
           }, {}));
           var spanCounter = 1; // Currently, all methods make GET requests. If a method makes a request with a body payload,
           // remember to add a 'Content-Type' header.
 
           var runRequest = function runRequest() {
             return fetch("".concat(_this.apiUrl, "/").concat(method).concat(searchParams.toString().length ? "?".concat(searchParams) : ''), {
-              headers: _objectSpread2({
+              headers: _objectSpread$1({
                 Authorization: _this.authorization,
                 'x-request-id': baseRequestId && "".concat(baseRequestId, "-span-").concat(spanCounter++)
               }, _this.headers)
@@ -36326,9 +35177,7 @@
             subscribe: function subscribe(callback) {
               var _this2 = this;
 
-              return _asyncToGenerator$$1(
-              /*#__PURE__*/
-              _regeneratorRuntime.mark(function _callee() {
+              return _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
                 var result;
                 return _regeneratorRuntime.wrap(function _callee$(_context) {
                   while (1) {
@@ -36358,6 +35207,40 @@
       return HttpTransport;
     }();
 
+    function ownKeys$2(object, enumerableOnly) {
+      var keys = Object.keys(object);
+
+      if (Object.getOwnPropertySymbols) {
+        var symbols = Object.getOwnPropertySymbols(object);
+        if (enumerableOnly) symbols = symbols.filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+        });
+        keys.push.apply(keys, symbols);
+      }
+
+      return keys;
+    }
+
+    function _objectSpread$2(target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i] != null ? arguments[i] : {};
+
+        if (i % 2) {
+          ownKeys$2(Object(source), true).forEach(function (key) {
+            _defineProperty$$1(target, key, source[key]);
+          });
+        } else if (Object.getOwnPropertyDescriptors) {
+          Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+        } else {
+          ownKeys$2(Object(source)).forEach(function (key) {
+            Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+          });
+        }
+      }
+
+      return target;
+    }
+
     var API_URL = "https://statsbot.co/cubejs-api/v1";
     var mutexCounter = 0;
     var MUTEX_ERROR = 'Mutex has been changed';
@@ -36371,15 +35254,8 @@
         });
       });
     };
-    /**
-     * Main class for accessing Cube.js API
-     * @order -5
-     */
 
-
-    var CubejsApi =
-    /*#__PURE__*/
-    function () {
+    var CubejsApi = /*#__PURE__*/function () {
       function CubejsApi(apiToken, options) {
         _classCallCheck$$1(this, CubejsApi);
 
@@ -36404,7 +35280,7 @@
       _createClass$$1(CubejsApi, [{
         key: "request",
         value: function request(method, params) {
-          return this.transport.request(method, _objectSpread2({
+          return this.transport.request(method, _objectSpread$2({
             baseRequestId: uuid()
           }, params));
         }
@@ -36449,12 +35325,8 @@
           });
           var unsubscribed = false;
 
-          var checkMutex =
-          /*#__PURE__*/
-          function () {
-            var _ref = _asyncToGenerator$$1(
-            /*#__PURE__*/
-            _regeneratorRuntime.mark(function _callee() {
+          var checkMutex = /*#__PURE__*/function () {
+            var _ref = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
               var requestInstance;
               return _regeneratorRuntime.wrap(function _callee$(_context) {
                 while (1) {
@@ -36497,12 +35369,8 @@
             };
           }();
 
-          var loadImpl =
-          /*#__PURE__*/
-          function () {
-            var _ref2 = _asyncToGenerator$$1(
-            /*#__PURE__*/
-            _regeneratorRuntime.mark(function _callee4(response, next) {
+          var loadImpl = /*#__PURE__*/function () {
+            var _ref2 = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee4(response, next) {
               var requestInstance, subscribeNext, continueWait, body, error, result;
               return _regeneratorRuntime.wrap(function _callee4$(_context4) {
                 while (1) {
@@ -36514,12 +35382,8 @@
                     case 2:
                       requestInstance = _context4.sent;
 
-                      subscribeNext =
-                      /*#__PURE__*/
-                      function () {
-                        var _ref3 = _asyncToGenerator$$1(
-                        /*#__PURE__*/
-                        _regeneratorRuntime.mark(function _callee2() {
+                      subscribeNext = /*#__PURE__*/function () {
+                        var _ref3 = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
                           return _regeneratorRuntime.wrap(function _callee2$(_context2) {
                             while (1) {
                               switch (_context2.prev = _context2.next) {
@@ -36563,12 +35427,8 @@
                         };
                       }();
 
-                      continueWait =
-                      /*#__PURE__*/
-                      function () {
-                        var _ref4 = _asyncToGenerator$$1(
-                        /*#__PURE__*/
-                        _regeneratorRuntime.mark(function _callee3(wait) {
+                      continueWait = /*#__PURE__*/function () {
+                        var _ref4 = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee3(wait) {
                           return _regeneratorRuntime.wrap(function _callee3$(_context3) {
                             while (1) {
                               switch (_context3.prev = _context3.next) {
@@ -36733,9 +35593,7 @@
           if (callback) {
             return {
               unsubscribe: function () {
-                var _unsubscribe = _asyncToGenerator$$1(
-                /*#__PURE__*/
-                _regeneratorRuntime.mark(function _callee5() {
+                var _unsubscribe = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee5() {
                   var requestInstance;
                   return _regeneratorRuntime.wrap(function _callee5$(_context5) {
                     while (1) {
@@ -36780,9 +35638,7 @@
       }, {
         key: "updateTransportAuthorization",
         value: function () {
-          var _updateTransportAuthorization = _asyncToGenerator$$1(
-          /*#__PURE__*/
-          _regeneratorRuntime.mark(function _callee6() {
+          var _updateTransportAuthorization = _asyncToGenerator$$1( /*#__PURE__*/_regeneratorRuntime.mark(function _callee6() {
             var token;
             return _regeneratorRuntime.wrap(function _callee6$(_context6) {
               while (1) {
@@ -36817,34 +35673,6 @@
 
           return updateTransportAuthorization;
         }()
-        /**
-         * Fetch data for passed `query`.
-         *
-         * ```js
-         * import cubejs from '@cubejs-client/core';
-         * import Chart from 'chart.js';
-         * import chartjsConfig from './toChartjsData';
-         *
-         * const cubejsApi = cubejs('CUBEJS_TOKEN');
-         *
-         * const resultSet = await cubejsApi.load({
-         *  measures: ['Stories.count'],
-         *  timeDimensions: [{
-         *    dimension: 'Stories.time',
-         *    dateRange: ['2015-01-01', '2015-12-31'],
-         *    granularity: 'month'
-         *   }]
-         * });
-         *
-         * const context = document.getElementById('myChart');
-         * new Chart(context, chartjsConfig(resultSet));
-         * ```
-         * @param query - [Query object](query-format)
-         * @param [options] - See {@link CubejsApi#loadMethod}
-         * @param [callback] - See {@link CubejsApi#loadMethod}
-         * @returns {Promise} for {@link ResultSet} if `callback` isn't passed
-         */
-
       }, {
         key: "load",
         value: function load(query, options, callback) {
@@ -36860,14 +35688,6 @@
             });
           }, options, callback);
         }
-        /**
-         * Get generated SQL string for given `query`.
-         * @param query - [Query object](query-format)
-         * @param [options] - See {@link CubejsApi#loadMethod}
-         * @param [callback] - See {@link CubejsApi#loadMethod}
-         * @return {Promise} for {@link SqlQuery} if `callback` isn't passed
-         */
-
       }, {
         key: "sql",
         value: function sql(query, options, callback) {
@@ -36881,13 +35701,6 @@
             return new SqlQuery(body);
           }, options, callback);
         }
-        /**
-         * Get meta description of cubes available for querying.
-         * @param [options] - See {@link CubejsApi#loadMethod}
-         * @param [callback] - See {@link CubejsApi#loadMethod}
-         * @return {Promise} for {@link Meta} if `callback` isn't passed
-         */
-
       }, {
         key: "meta",
         value: function meta(options, callback) {
@@ -36912,7 +35725,7 @@
             return new ResultSet(body, {
               parseDateMeasures: _this5.parseDateMeasures
             });
-          }, _objectSpread2({}, options, {
+          }, _objectSpread$2(_objectSpread$2({}, options), {}, {
             subscribe: true
           }), callback);
         }
@@ -36920,30 +35733,6 @@
 
       return CubejsApi;
     }();
-    /**
-     * Create instance of `CubejsApi`.
-     * API entry point.
-     *
-     * ```javascript
-     import cubejs from '@cubejs-client/core';
-    
-     const cubejsApi = cubejs(
-     'CUBEJS-API-TOKEN',
-     { apiUrl: 'http://localhost:4000/cubejs-api/v1' }
-     );
-     ```
-     * @name cubejs
-     * @param [apiToken] - [API token](security) is used to authorize requests and determine SQL database you're accessing.
-     * In the development mode, Cube.js Backend will print the API token to the console on on startup.
-     * Can be an async function without arguments that returns API token.
-     * @param [options] - options object.
-     * @param options.apiUrl - URL of your Cube.js Backend.
-     * By default, in the development environment it is `http://localhost:4000/cubejs-api/v1`.
-     * @param options.transport - transport implementation to use. {@link HttpTransport} will be used by default.
-     * @returns {CubejsApi}
-     * @order -10
-     */
-
 
     var index = function index(apiToken, options) {
       return new CubejsApi(apiToken, options);
@@ -36988,18 +35777,18 @@
     title: 'Year'
   }];
 
-  var QueryBuilder =
-  /*#__PURE__*/
-  function (_React$Component) {
+  var QueryBuilder = /*#__PURE__*/function (_React$Component) {
     _inherits(QueryBuilder, _React$Component);
+
+    var _super = _createSuper(QueryBuilder);
 
     _createClass(QueryBuilder, null, [{
       key: "getDerivedStateFromProps",
       value: function getDerivedStateFromProps(props$$1, state) {
-        var nextState = _objectSpread({}, state, {}, props$$1.vizState || {});
+        var nextState = _objectSpread2(_objectSpread2({}, state), props$$1.vizState || {});
 
-        return _objectSpread({}, nextState, {
-          query: _objectSpread({}, nextState.query, {}, props$$1.query || {})
+        return _objectSpread2(_objectSpread2({}, nextState), {}, {
+          query: _objectSpread2(_objectSpread2({}, nextState.query), props$$1.query || {})
         });
       }
     }, {
@@ -37014,8 +35803,8 @@
 
         if (type$$1 === 'timeDimensions') {
           return (query.timeDimensions || []).map(function (m, index) {
-            return _objectSpread({}, m, {
-              dimension: _objectSpread({}, meta.resolveMember(m.dimension, 'dimensions'), {
+            return _objectSpread2(_objectSpread2({}, m), {}, {
+              dimension: _objectSpread2(_objectSpread2({}, meta.resolveMember(m.dimension, 'dimensions')), {}, {
                 granularities: granularities
               }),
               index: index
@@ -37024,7 +35813,7 @@
         }
 
         return (query[type$$1] || []).map(function (m, index) {
-          return _objectSpread({
+          return _objectSpread2({
             index: index
           }, meta.resolveMember(m, type$$1));
         });
@@ -37049,7 +35838,7 @@
         return uniqBy(prop('id'), [].concat(_toConsumableArray(QueryBuilder.resolveMember('measures', state).map(toOrderMember)), _toConsumableArray(QueryBuilder.resolveMember('dimensions', state).map(toOrderMember)), _toConsumableArray(QueryBuilder.resolveMember('timeDimensions', state).map(function (td) {
           return toOrderMember(td.dimension);
         }))).map(function (member) {
-          return _objectSpread({}, member, {
+          return _objectSpread2(_objectSpread2({}, member), {}, {
             order: query.order && query.order[member.id] || 'none'
           });
         }));
@@ -37061,8 +35850,8 @@
 
       _classCallCheck(this, QueryBuilder);
 
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(QueryBuilder).call(this, props$$1));
-      _this.state = _objectSpread({
+      _this = _super.call(this, props$$1);
+      _this.state = _objectSpread2({
         query: props$$1.query,
         chartType: 'line',
         orderMembers: [],
@@ -37075,9 +35864,7 @@
     _createClass(QueryBuilder, [{
       key: "componentDidMount",
       value: function () {
-        var _componentDidMount = _asyncToGenerator(
-        /*#__PURE__*/
-        regeneratorRuntime.mark(function _callee() {
+        var _componentDidMount = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
           var _this$state, query, pivotConfig, meta;
 
           return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -37181,7 +35968,7 @@
             orderMembers = _this$state2$orderMem === void 0 ? [] : _this$state2$orderMem,
             chartType = _this$state2.chartType,
             pivotConfig = _this$state2.pivotConfig;
-        return _objectSpread({
+        return _objectSpread2({
           meta: meta,
           query: query,
           validatedQuery: this.validatedQuery(),
@@ -37191,12 +35978,12 @@
           dimensions: QueryBuilder.resolveMember('dimensions', this.state),
           timeDimensions: QueryBuilder.resolveMember('timeDimensions', this.state),
           segments: (meta && query.segments || []).map(function (m, i) {
-            return _objectSpread({
+            return _objectSpread2({
               index: i
             }, meta.resolveMember(m, 'segments'));
           }),
           filters: (meta && query.filters || []).map(function (m, i) {
-            return _objectSpread({}, m, {
+            return _objectSpread2(_objectSpread2({}, m), {}, {
               dimension: meta.resolveMember(m.dimension, ['dimensions', 'measures']),
               operators: meta.filterOperatorsForMember(m.dimension, ['dimensions', 'measures']),
               index: i
@@ -37228,7 +36015,7 @@
 
               _this2.updateVizState({
                 orderMembers: orderMembers.map(function (orderMember) {
-                  return _objectSpread({}, orderMember, {
+                  return _objectSpread2(_objectSpread2({}, orderMember), {}, {
                     order: orderMember.id === memberId ? order : orderMember.order
                   });
                 })
@@ -37257,7 +36044,7 @@
                   sourceAxis = _ref2.sourceAxis,
                   destinationAxis = _ref2.destinationAxis;
 
-              var nextPivotConfig = _objectSpread({}, pivotConfig, {
+              var nextPivotConfig = _objectSpread2(_objectSpread2({}, pivotConfig), {}, {
                 x: _toConsumableArray(pivotConfig.x),
                 y: _toConsumableArray(pivotConfig.y)
               });
@@ -37280,7 +36067,7 @@
             },
             update: function update$$1(config) {
               _this2.updateVizState({
-                pivotConfig: _objectSpread({}, pivotConfig, {}, config)
+                pivotConfig: _objectSpread2(_objectSpread2({}, pivotConfig), config)
               });
             }
           }
@@ -37291,16 +36078,14 @@
       value: function updateQuery(queryUpdate) {
         var query = this.state.query;
         this.updateVizState({
-          query: _objectSpread({}, query, {}, queryUpdate)
+          query: _objectSpread2(_objectSpread2({}, query), queryUpdate)
         });
       }
     }, {
       key: "updateVizState",
       value: function () {
-        var _updateVizState = _asyncToGenerator(
-        /*#__PURE__*/
-        regeneratorRuntime.mark(function _callee2(state) {
-          var _this$props, setQuery, setVizState, _this$state3, stateQuery, statePivotConfig, finalState, _ref3, _, query, _ref4, sqlQuery, activePivotConfig, updatedOrderMembers, currentOrderMemberIds, currentOrderMembers, nextOrder, nextQuery, _finalState, _meta, toSet;
+        var _updateVizState = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(state) {
+          var _this$props, setQuery, setVizState, _this$state3, stateQuery, statePivotConfig, finalState, _ref3, _, query, _yield$this$cubejsApi, sqlQuery, activePivotConfig, updatedOrderMembers, currentOrderMemberIds, currentOrderMembers, nextOrder, nextQuery, _finalState, meta, toSet;
 
           return regeneratorRuntime.wrap(function _callee2$(_context2) {
             while (1) {
@@ -37322,52 +36107,52 @@
                   });
 
                 case 7:
-                  _ref4 = _context2.sent;
-                  sqlQuery = _ref4.sqlQuery;
+                  _yield$this$cubejsApi = _context2.sent;
+                  sqlQuery = _yield$this$cubejsApi.sqlQuery;
                   finalState.query.order = sqlQuery.sql.order;
 
                 case 10:
                   activePivotConfig = finalState.pivotConfig !== undefined ? finalState.pivotConfig : statePivotConfig;
-                  updatedOrderMembers = indexBy(prop('id'), QueryBuilder.getOrderMembers(_objectSpread({}, this.state, {}, finalState)));
-                  currentOrderMemberIds = (finalState.orderMembers || []).map(function (_ref5) {
-                    var id = _ref5.id;
+                  updatedOrderMembers = indexBy(prop('id'), QueryBuilder.getOrderMembers(_objectSpread2(_objectSpread2({}, this.state), finalState)));
+                  currentOrderMemberIds = (finalState.orderMembers || []).map(function (_ref4) {
+                    var id = _ref4.id;
                     return id;
                   });
-                  currentOrderMembers = (finalState.orderMembers || []).filter(function (_ref6) {
-                    var id = _ref6.id;
+                  currentOrderMembers = (finalState.orderMembers || []).filter(function (_ref5) {
+                    var id = _ref5.id;
                     return Boolean(updatedOrderMembers[id]);
                   });
-                  Object.entries(updatedOrderMembers).forEach(function (_ref7) {
-                    var _ref8 = _slicedToArray(_ref7, 2),
-                        id = _ref8[0],
-                        orderMember = _ref8[1];
+                  Object.entries(updatedOrderMembers).forEach(function (_ref6) {
+                    var _ref7 = _slicedToArray(_ref6, 2),
+                        id = _ref7[0],
+                        orderMember = _ref7[1];
 
                     if (!currentOrderMemberIds.includes(id)) {
                       currentOrderMembers.push(orderMember);
                     }
                   });
-                  nextOrder = fromPairs(currentOrderMembers.map(function (_ref9) {
-                    var id = _ref9.id,
-                        order = _ref9.order;
+                  nextOrder = fromPairs(currentOrderMembers.map(function (_ref8) {
+                    var id = _ref8.id,
+                        order = _ref8.order;
                     return order !== 'none' ? [id, order] : false;
                   }).filter(Boolean));
-                  nextQuery = _objectSpread({}, stateQuery, {}, query, {
+                  nextQuery = _objectSpread2(_objectSpread2(_objectSpread2({}, stateQuery), query), {}, {
                     order: nextOrder
                   });
-                  finalState = _objectSpread({}, finalState, {
+                  finalState = _objectSpread2(_objectSpread2({}, finalState), {}, {
                     query: nextQuery,
                     orderMembers: currentOrderMembers,
                     pivotConfig: cubejsClientCore_2.getNormalizedPivotConfig(nextQuery, activePivotConfig)
                   });
                   this.setState(finalState);
-                  finalState = _objectSpread({}, this.state, {}, finalState);
+                  finalState = _objectSpread2(_objectSpread2({}, this.state), finalState);
 
                   if (setQuery) {
                     setQuery(finalState.query);
                   }
 
                   if (setVizState) {
-                    _finalState = finalState, _meta = _finalState.meta, toSet = _objectWithoutProperties(_finalState, ["meta"]);
+                    _finalState = finalState, meta = _finalState.meta, toSet = _objectWithoutProperties(_finalState, ["meta"]);
                     setVizState(toSet);
                   }
 
@@ -37389,7 +36174,7 @@
       key: "validatedQuery",
       value: function validatedQuery() {
         var query = this.state.query;
-        return _objectSpread({}, query, {
+        return _objectSpread2(_objectSpread2({}, query), {}, {
           filters: (query.filters || []).filter(function (f) {
             return f.operator;
           })
@@ -37406,24 +36191,23 @@
         if (newState.query) {
           var oldQuery = query;
           var newQuery = newState.query;
-          var _meta2 = this.state.meta;
+          var meta = this.state.meta;
 
           if ((oldQuery.timeDimensions || []).length === 1 && (newQuery.timeDimensions || []).length === 1 && newQuery.timeDimensions[0].granularity && oldQuery.timeDimensions[0].granularity !== newQuery.timeDimensions[0].granularity) {
-            newState = _objectSpread({}, newState, {
+            newState = _objectSpread2(_objectSpread2({}, newState), {}, {
               sessionGranularity: newQuery.timeDimensions[0].granularity
             });
           }
 
           if ((oldQuery.measures || []).length === 0 && (newQuery.measures || []).length > 0 || (oldQuery.measures || []).length === 1 && (newQuery.measures || []).length === 1 && oldQuery.measures[0] !== newQuery.measures[0]) {
-            var defaultTimeDimension = _meta2.defaultTimeDimensionNameFor(newQuery.measures[0]);
-
-            newQuery = _objectSpread({}, newQuery, {
+            var defaultTimeDimension = meta.defaultTimeDimensionNameFor(newQuery.measures[0]);
+            newQuery = _objectSpread2(_objectSpread2({}, newQuery), {}, {
               timeDimensions: defaultTimeDimension ? [{
                 dimension: defaultTimeDimension,
                 granularity: defaultGranularity
               }] : []
             });
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
               shouldApplyHeuristicOrder: true,
               query: newQuery,
@@ -37432,14 +36216,14 @@
           }
 
           if ((oldQuery.dimensions || []).length === 0 && (newQuery.dimensions || []).length > 0) {
-            newQuery = _objectSpread({}, newQuery, {
+            newQuery = _objectSpread2(_objectSpread2({}, newQuery), {}, {
               timeDimensions: (newQuery.timeDimensions || []).map(function (td) {
-                return _objectSpread({}, td, {
+                return _objectSpread2(_objectSpread2({}, td), {}, {
                   granularity: undefined
                 });
               })
             });
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
               shouldApplyHeuristicOrder: true,
               query: newQuery,
@@ -37448,14 +36232,14 @@
           }
 
           if ((oldQuery.dimensions || []).length > 0 && (newQuery.dimensions || []).length === 0) {
-            newQuery = _objectSpread({}, newQuery, {
+            newQuery = _objectSpread2(_objectSpread2({}, newQuery), {}, {
               timeDimensions: (newQuery.timeDimensions || []).map(function (td) {
-                return _objectSpread({}, td, {
+                return _objectSpread2(_objectSpread2({}, td), {}, {
                   granularity: td.granularity || defaultGranularity
                 });
               })
             });
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
               shouldApplyHeuristicOrder: true,
               query: newQuery,
@@ -37464,11 +36248,11 @@
           }
 
           if (((oldQuery.dimensions || []).length > 0 || (oldQuery.measures || []).length > 0) && (newQuery.dimensions || []).length === 0 && (newQuery.measures || []).length === 0) {
-            newQuery = _objectSpread({}, newQuery, {
+            newQuery = _objectSpread2(_objectSpread2({}, newQuery), {}, {
               timeDimensions: [],
               filters: []
             });
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
               shouldApplyHeuristicOrder: true,
               query: newQuery,
@@ -37486,10 +36270,10 @@
             var _query$timeDimensions = _slicedToArray(query.timeDimensions, 1),
                 td = _query$timeDimensions[0];
 
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
-              query: _objectSpread({}, query, {
-                timeDimensions: [_objectSpread({}, td, {
+              query: _objectSpread2(_objectSpread2({}, query), {}, {
+                timeDimensions: [_objectSpread2(_objectSpread2({}, td), {}, {
                   granularity: defaultGranularity
                 })]
               })
@@ -37500,11 +36284,11 @@
             var _query$timeDimensions2 = _slicedToArray(query.timeDimensions, 1),
                 _td = _query$timeDimensions2[0];
 
-            return _objectSpread({}, newState, {
+            return _objectSpread2(_objectSpread2({}, newState), {}, {
               pivotConfig: null,
               shouldApplyHeuristicOrder: true,
-              query: _objectSpread({}, query, {
-                timeDimensions: [_objectSpread({}, _td, {
+              query: _objectSpread2(_objectSpread2({}, query), {}, {
+                timeDimensions: [_objectSpread2(_objectSpread2({}, _td), {}, {
                   granularity: undefined
                 })]
               })
@@ -37538,7 +36322,7 @@
             wrapWithQueryRenderer = _this$props3.wrapWithQueryRenderer;
 
         if (wrapWithQueryRenderer) {
-          return React__default.createElement(QueryRenderer, {
+          return /*#__PURE__*/React__default.createElement(QueryRenderer, {
             query: this.validatedQuery(),
             cubejsApi: cubejsApi,
             render: function render(queryRendererProps) {
@@ -37588,7 +36372,7 @@
   var CubeProvider = function CubeProvider(_ref) {
     var cubejsApi = _ref.cubejsApi,
         children = _ref.children;
-    return React__default.createElement(CubeContext.Provider, {
+    return /*#__PURE__*/React__default.createElement(CubeContext.Provider, {
       value: {
         cubejsApi: cubejsApi
       }
@@ -37646,9 +36430,7 @@
       }
 
       function _loadQuery() {
-        _loadQuery = _asyncToGenerator(
-        /*#__PURE__*/
-        regeneratorRuntime.mark(function _callee() {
+        _loadQuery = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
           var hasOrderChanged, cubejsApi;
           return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {

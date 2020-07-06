@@ -50,7 +50,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "start": "PORT=3080 react-app-rewired start",
+    "start": "react-app-rewired start",
     "build": "react-app-rewired --max-old-space-size=2048 build && rm -Rf ../cubejs-server-core/playground/** && cp -R build/ ../cubejs-server-core/playground/",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",

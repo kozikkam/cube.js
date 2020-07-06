@@ -51,14 +51,22 @@ class PostgresDriver extends BaseDriver {
       }
     }
 
-    this.pool = new Pool({
-      max: process.env.CUBEJS_DB_MAX_POOL && parseInt(process.env.CUBEJS_DB_MAX_POOL, 10) || 8,
-      idleTimeoutMillis: 30000,
+    console.log({
       host: process.env.CUBEJS_DB_HOST,
       database: process.env.CUBEJS_DB_NAME,
       port: process.env.CUBEJS_DB_PORT,
       user: process.env.CUBEJS_DB_USER,
       password: process.env.CUBEJS_DB_PASS,
+    })
+
+    this.pool = new Pool({
+      max: process.env.CUBEJS_DB_MAX_POOL && parseInt(process.env.CUBEJS_DB_MAX_POOL, 10) || 8,
+      idleTimeoutMillis: 30000,
+      host: process.env.CUBEJS_DB_HOST,
+      database: 'mydb',
+      port: 32768,
+      user: 'postgres',
+      // password: process.env.CUBEJS_DB_PASS,
       ssl,
       ...config
     });

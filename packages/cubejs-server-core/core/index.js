@@ -22,6 +22,7 @@ const DriverDependencies = {
   athena: '@cubejs-backend/athena-driver',
   jdbc: '@cubejs-backend/jdbc-driver',
   mongobi: '@cubejs-backend/mongobi-driver',
+  mongodb: '@cubejs-backend/mongodb-driver',
   bigquery: '@cubejs-backend/bigquery-driver',
   redshift: '@cubejs-backend/postgres-driver',
   clickhouse: '@cubejs-backend/clickhouse-driver',
@@ -178,6 +179,7 @@ class CubejsServerCore {
       telemetry: process.env.CUBEJS_TELEMETRY !== 'false',
       ...options
     };
+    console.log(options);
     if (
       !options.driverFactory ||
       !options.apiSecret ||
